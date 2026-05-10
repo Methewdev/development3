@@ -6,7 +6,7 @@ import re
 # CONFIG
 # =====================================================
 
-API_URL = "https://api-inference.huggingface.co/models/envidevelopment/model2"
+API_URL = "https://api-inference.huggingface.co/models/envidevelopment/model3"
 
 headers = {
     "Authorization": "Bearer HF_TOKEN_ANDA"
