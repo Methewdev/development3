@@ -139,7 +139,7 @@ def query_model(payload):
         )
 
         # =====================================================
-        # STATUS CODE
+        # API ERROR
         # =====================================================
 
         if response.status_code != 200:
@@ -165,7 +165,7 @@ def query_model(payload):
             return None
 
         # =====================================================
-        # CONVERT JSON
+        # JSON CONVERT
         # =====================================================
 
         try:
@@ -183,7 +183,7 @@ def query_model(payload):
             return None
 
         # =====================================================
-        # HANDLE MODEL ERROR
+        # HANDLE HF ERROR
         # =====================================================
 
         if isinstance(result, dict):
@@ -215,7 +215,7 @@ def query_model(payload):
         return None
 
 # =====================================================
-# PREDICTION
+# PREDICT EMOTION
 # =====================================================
 
 def predict_emotion(text):
@@ -288,27 +288,41 @@ def predict_emotion(text):
         )
 
 # =====================================================
-# SARCASM DETECTION
+# HYBRID SARCASM DETECTION
 # =====================================================
 
-def detect_sarcasm(text, emotion):
+def detect_sarcasm(text):
 
     text = clean_text(text)
+
+    # =====================================================
+    # POSITIVE WORDS
+    # =====================================================
 
     positive_words = [
         "bagus",
         "mantap",
         "keren",
         "hebat",
-        "cepat"
+        "cepat",
+        "terima kasih",
+        "luar biasa"
     ]
+
+    # =====================================================
+    # NEGATIVE WORDS
+    # =====================================================
 
     negative_words = [
         "gagal",
         "error",
         "maintenance",
         "lemot",
-        "pending"
+        "pending",
+        "gangguan",
+        "force close",
+        "tidak bisa",
+        "lambat"
     ]
 
     pos_found = any(
@@ -319,16 +333,11 @@ def detect_sarcasm(text, emotion):
         word in text for word in negative_words
     )
 
-    negative_emotion = emotion in [
-        "marah",
-        "frustrasi"
-    ]
-
     # =====================================================
-    # IMPLICIT SARCASM
+    # CONTRADICTION DETECTION
     # =====================================================
 
-    if pos_found and neg_found and negative_emotion:
+    if pos_found and neg_found:
 
         return True
 
@@ -368,8 +377,7 @@ if st.button("🔍 Analisis Sekarang"):
             )
 
             is_sarcasm = detect_sarcasm(
-                text,
-                emotion
+                text
             )
 
         style = emotion_styles[emotion]
@@ -491,7 +499,11 @@ samples = [
 
     "Saya takut saldo hilang",
 
-    "Login cepat dan aman"
+    "Login cepat dan aman",
+
+    "Terima kasih Livin error terus",
+
+    "Keren banget maintenance tiap gajian"
 ]
 
 for s in samples:
