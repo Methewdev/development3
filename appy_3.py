@@ -1,26 +1,50 @@
 import streamlit as st
+import torch
 import re
 
-# =====================================================
-# PAGE CONFIG
-# =====================================================
-
-st.set_page_config(
-    page_title="Analisis Emosi & Sarkasme Livin",
-    page_icon="📊",
-    layout="centered"
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification
 )
 
 # =====================================================
-# HEADER
+# CONFIG
 # =====================================================
 
-st.title("📊 Analisis Emosi & Sarkasme Nasabah Livin")
+st.set_page_config(
+    page_title="Analisis Emosi Livin",
+    layout="centered"
+)
 
-st.markdown("""
-Prototype Analisis Emosi dan Sarkasme  
-berbasis NLP sesuai proposal tesis
-""")
+st.title("📊 Analisis Emosi Nasabah Livin")
+
+# =====================================================
+# LOAD MODEL
+# =====================================================
+
+@st.cache_resource
+def load_model():
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "./model"
+    )
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "./model"
+    )
+
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+emotion_classes = [
+    "cemas",
+    "frustrasi",
+    "marah",
+    "netral",
+    "puas",
+    "senang"
+]
 
 # =====================================================
 # CLEANING
@@ -32,293 +56,69 @@ def clean_text(text):
 
     text = re.sub(r"http\S+", "", text)
 
-    text = re.sub(r"www\S+", "", text)
-
-    text = re.sub(r"@\w+", "", text)
-
-    text = re.sub(r"[^a-zA-Z0-9\s!?]", " ", text)
-
     text = re.sub(r"\s+", " ", text).strip()
 
     return text
 
 # =====================================================
-# SARCASM DETECTION
-# =====================================================
-
-def detect_sarcasm(text):
-
-    text = clean_text(text)
-
-    positive_words = [
-        "bagus",
-        "mantap",
-        "keren",
-        "hebat",
-        "cepat"
-    ]
-
-    negative_words = [
-        "gagal",
-        "error",
-        "lemot",
-        "maintenance",
-        "pending",
-        "lambat"
-    ]
-
-    pos_found = any(
-        word in text for word in positive_words
-    )
-
-    neg_found = any(
-        word in text for word in negative_words
-    )
-
-    if pos_found and neg_found:
-
-        return True
-
-    return False
-
-# =====================================================
-# EMOTION PREDICTION
+# PREDICT
 # =====================================================
 
 def predict_emotion(text):
 
-    text = clean_text(text)
+    cleaned = clean_text(text)
 
-    # =====================================================
-    # SARCASM
-    # =====================================================
+    inputs = tokenizer(
+        cleaned,
+        return_tensors="pt",
+        truncation=True,
+        padding=True,
+        max_length=128
+    )
 
-    if detect_sarcasm(text):
+    with torch.no_grad():
 
-        return "frustrasi", 0.95
+        outputs = model(**inputs)
 
-    # =====================================================
-    # NEGATIVE
-    # =====================================================
+    probs = torch.softmax(
+        outputs.logits,
+        dim=1
+    )
 
-    negative_words = [
-        "gagal",
-        "error",
-        "lemot",
-        "kecewa",
-        "maintenance",
-        "marah",
-        "pending"
-    ]
+    prediction = torch.argmax(
+        probs,
+        dim=1
+    ).item()
 
-    if any(word in text for word in negative_words):
+    confidence = probs[0][prediction].item()
 
-        return "marah", 0.90
+    emotion = emotion_classes[prediction]
 
-    # =====================================================
-    # FEAR
-    # =====================================================
-
-    fear_words = [
-        "takut",
-        "cemas",
-        "khawatir"
-    ]
-
-    if any(word in text for word in fear_words):
-
-        return "cemas", 0.88
-
-    # =====================================================
-    # POSITIVE
-    # =====================================================
-
-    positive_words = [
-        "bagus",
-        "cepat",
-        "mantap",
-        "membantu",
-        "keren",
-        "hebat"
-    ]
-
-    if any(word in text for word in positive_words):
-
-        return "senang", 0.92
-
-    # =====================================================
-    # DEFAULT
-    # =====================================================
-
-    return "netral", 0.80
-
-# =====================================================
-# EMOTION STYLE
-# =====================================================
-
-emotion_styles = {
-    "marah": {
-        "emoji": "😡",
-        "color": "#FF4B4B"
-    },
-
-    "frustrasi": {
-        "emoji": "😤",
-        "color": "#FF8C00"
-    },
-
-    "cemas": {
-        "emoji": "😰",
-        "color": "#8A2BE2"
-    },
-
-    "senang": {
-        "emoji": "😊",
-        "color": "#00C853"
-    },
-
-    "netral": {
-        "emoji": "😐",
-        "color": "#808080"
-    }
-}
+    return emotion, confidence
 
 # =====================================================
 # INPUT
 # =====================================================
 
-st.markdown("### ✍️ Masukkan Ulasan Nasabah")
-
 text = st.text_area(
-    "",
-    placeholder="Contoh: Bagus banget aplikasinya transfer gagal terus..."
+    "Masukkan ulasan nasabah"
 )
 
 # =====================================================
 # BUTTON
 # =====================================================
 
-if st.button("🔍 Analisis Sekarang"):
+if st.button("Analisis"):
 
-    if text.strip() == "":
+    emotion, confidence = predict_emotion(
+        text
+    )
 
-        st.warning(
-            "⚠️ Masukkan ulasan terlebih dahulu"
-        )
+    st.success(
+        f"Emosi: {emotion}"
+    )
 
-    else:
-
-        # =====================================================
-        # PREDICTION
-        # =====================================================
-
-        emotion, confidence = predict_emotion(
-            text
-        )
-
-        is_sarcasm = detect_sarcasm(
-            text
-        )
-
-        # =====================================================
-        # STYLE
-        # =====================================================
-
-        emoji = emotion_styles[emotion]["emoji"]
-
-        color = emotion_styles[emotion]["color"]
-
-        # =====================================================
-        # RESULT HEADER
-        # =====================================================
-
-        st.markdown("---")
-
-        st.markdown("## 📌 Hasil Analisis")
-
-        # =====================================================
-        # EMOTION DISPLAY
-        # =====================================================
-
-        st.markdown(
-            f"""
-            <div style="
-                background-color:{color};
-                padding:20px;
-                border-radius:15px;
-                text-align:center;
-                color:white;
-            ">
-                <h1>
-                    {emoji} {emotion.upper()}
-                </h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # =====================================================
-        # CONFIDENCE
-        # =====================================================
-
-        st.metric(
-            "🎯 Confidence Score",
-            f"{confidence*100:.2f}%"
-        )
-
-        # =====================================================
-        # SARCASM RESULT
-        # =====================================================
-
-        st.markdown("### 🧠 Hasil Deteksi Sarkasme")
-
-        if is_sarcasm:
-
-            st.error(
-                "⚠️ Sarkasme Terdeteksi"
-            )
-
-        else:
-
-            st.success(
-                "✅ Tidak Mengandung Sarkasme"
-            )
-
-        # =====================================================
-        # CLEAN TEXT
-        # =====================================================
-
-        st.markdown("### 📝 Hasil Cleaning")
-
-        st.code(
-            clean_text(text)
-        )
-
-# =====================================================
-# SAMPLE
-# =====================================================
-
-st.markdown("---")
-
-st.subheader("📌 Contoh Kalimat Sarkasme")
-
-samples = [
-    "Bagus banget aplikasinya transfer gagal terus",
-    "Mantap maintenance tiap malam",
-    "Keren login 2 jam gagal",
-    "Cepat banget errornya muncul terus"
-]
-
-for s in samples:
-
-    st.code(s)
-
-# =====================================================
-# FOOTER
-# =====================================================
-
-st.markdown("---")
-
-st.caption(
-    "Prototype Analisis Emosi & Sarkasme | Tesis NLP Mobile Banking"
-)
+    st.metric(
+        "Confidence",
+        f"{confidence*100:.2f}%"
+    )
