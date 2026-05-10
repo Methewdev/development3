@@ -288,6 +288,53 @@ def predict_emotion(text):
         )
 
 # =====================================================
+# SARCASM DETECTION
+# =====================================================
+
+def detect_sarcasm(text, emotion):
+
+    text = clean_text(text)
+
+    positive_words = [
+        "bagus",
+        "mantap",
+        "keren",
+        "hebat",
+        "cepat"
+    ]
+
+    negative_words = [
+        "gagal",
+        "error",
+        "maintenance",
+        "lemot",
+        "pending"
+    ]
+
+    pos_found = any(
+        word in text for word in positive_words
+    )
+
+    neg_found = any(
+        word in text for word in negative_words
+    )
+
+    negative_emotion = emotion in [
+        "marah",
+        "frustrasi"
+    ]
+
+    # =====================================================
+    # IMPLICIT SARCASM
+    # =====================================================
+
+    if pos_found and neg_found and negative_emotion:
+
+        return True
+
+    return False
+
+# =====================================================
 # INPUT
 # =====================================================
 
@@ -318,6 +365,11 @@ if st.button("🔍 Analisis Sekarang"):
 
             emotion, confidence = predict_emotion(
                 text
+            )
+
+            is_sarcasm = detect_sarcasm(
+                text,
+                emotion
             )
 
         style = emotion_styles[emotion]
@@ -366,6 +418,50 @@ if st.button("🔍 Analisis Sekarang"):
             "🎯 Confidence Score",
             f"{confidence*100:.2f}%"
         )
+
+        # =====================================================
+        # SARCASM RESULT
+        # =====================================================
+
+        st.markdown("### 🧠 Hasil Deteksi Sarkasme")
+
+        if is_sarcasm:
+
+            st.markdown(
+                """
+                <div style="
+                    background-color:#FF5252;
+                    padding:15px;
+                    border-radius:10px;
+                    color:white;
+                    text-align:center;
+                    font-size:20px;
+                    font-weight:bold;
+                ">
+                    ⚠️ Sarkasme Terdeteksi
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        else:
+
+            st.markdown(
+                """
+                <div style="
+                    background-color:#00C853;
+                    padding:15px;
+                    border-radius:10px;
+                    color:white;
+                    text-align:center;
+                    font-size:20px;
+                    font-weight:bold;
+                ">
+                    ✅ Tidak Mengandung Sarkasme
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         # =====================================================
         # CLEANING RESULT
