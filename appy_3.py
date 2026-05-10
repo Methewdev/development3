@@ -1,50 +1,33 @@
 import streamlit as st
-import torch
+import requests
 import re
-
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
 
 # =====================================================
 # CONFIG
 # =====================================================
 
+API_URL = "https://api-inference.huggingface.co/models/envidevelopment/model2"
+
+headers = {
+    "Authorization": "Bearer HF_TOKEN_ANDA"
+}
+
+# =====================================================
+# PAGE
+# =====================================================
+
 st.set_page_config(
     page_title="Analisis Emosi Livin",
+    page_icon="📊",
     layout="centered"
 )
 
-st.title("📊 Analisis Emosi Nasabah Livin")
+st.title("📊 Analisis Emosi & Sarkasme")
 
-# =====================================================
-# LOAD MODEL
-# =====================================================
-
-@st.cache_resource
-def load_model():
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        "./model"
-    )
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        "./model"
-    )
-
-    return tokenizer, model
-
-tokenizer, model = load_model()
-
-emotion_classes = [
-    "cemas",
-    "frustrasi",
-    "marah",
-    "netral",
-    "puas",
-    "senang"
-]
+st.markdown("""
+Analisis emosi nasabah mobile banking
+berbasis IndoBERT Transformer
+""")
 
 # =====================================================
 # CLEANING
@@ -61,40 +44,88 @@ def clean_text(text):
     return text
 
 # =====================================================
+# QUERY API
+# =====================================================
+
+def query(payload):
+
+    response = requests.post(
+        API_URL,
+        headers=headers,
+        json=payload
+    )
+
+    return response.json()
+
+# =====================================================
 # PREDICT
 # =====================================================
+
+emotion_classes = [
+    "cemas",
+    "frustrasi",
+    "marah",
+    "netral",
+    "puas",
+    "senang"
+]
 
 def predict_emotion(text):
 
     cleaned = clean_text(text)
 
-    inputs = tokenizer(
-        cleaned,
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=128
+    output = query({
+        "inputs": cleaned
+    })
+
+    label = output[0][0]["label"]
+
+    score = output[0][0]["score"]
+
+    label_id = int(
+        label.split("_")[-1]
     )
 
-    with torch.no_grad():
+    emotion = emotion_classes[label_id]
 
-        outputs = model(**inputs)
+    return emotion, score
 
-    probs = torch.softmax(
-        outputs.logits,
-        dim=1
-    )
+# =====================================================
+# STYLE
+# =====================================================
 
-    prediction = torch.argmax(
-        probs,
-        dim=1
-    ).item()
+emotion_styles = {
 
-    confidence = probs[0][prediction].item()
+    "marah": {
+        "emoji": "😡",
+        "color": "#FF4B4B"
+    },
 
-    emotion = emotion_classes[prediction]
+    "frustrasi": {
+        "emoji": "😤",
+        "color": "#FF9800"
+    },
 
-    return emotion, confidence
+    "cemas": {
+        "emoji": "😰",
+        "color": "#8E44AD"
+    },
+
+    "senang": {
+        "emoji": "😊",
+        "color": "#00C853"
+    },
+
+    "puas": {
+        "emoji": "😌",
+        "color": "#03A9F4"
+    },
+
+    "netral": {
+        "emoji": "😐",
+        "color": "#607D8B"
+    }
+}
 
 # =====================================================
 # INPUT
@@ -108,17 +139,44 @@ text = st.text_area(
 # BUTTON
 # =====================================================
 
-if st.button("Analisis"):
+if st.button("🔍 Analisis"):
 
-    emotion, confidence = predict_emotion(
-        text
-    )
+    if text.strip() == "":
 
-    st.success(
-        f"Emosi: {emotion}"
-    )
+        st.warning(
+            "Masukkan ulasan terlebih dahulu"
+        )
 
-    st.metric(
-        "Confidence",
-        f"{confidence*100:.2f}%"
-    )
+    else:
+
+        emotion, confidence = predict_emotion(
+            text
+        )
+
+        style = emotion_styles[emotion]
+
+        st.markdown("---")
+
+        st.markdown("## 📌 Hasil Analisis")
+
+        st.markdown(
+            f"""
+            <div style="
+                background-color:{style['color']};
+                padding:20px;
+                border-radius:15px;
+                text-align:center;
+                color:white;
+            ">
+                <h1>
+                    {style['emoji']} {emotion.upper()}
+                </h1>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.metric(
+            "🎯 Confidence Score",
+            f"{confidence*100:.2f}%"
+        )
