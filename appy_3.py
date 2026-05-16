@@ -23,33 +23,16 @@ html, body, [class*="css"] {
     font-family: Arial, sans-serif;
 }
 
-.main {
-    background-color: #0E1117;
-}
-
-.block-container {
-    padding-top: 2rem;
-}
-
-.stTextArea textarea {
-    font-size: 18px !important;
-    border-radius: 15px !important;
-}
-
 .stButton button {
     width: 100%;
-    height: 55px;
-    border-radius: 15px;
-    border: none;
-    background-color: #03A9F4;
-    color: white;
+    height: 50px;
+    border-radius: 10px;
     font-size: 18px;
     font-weight: bold;
 }
 
-.stButton button:hover {
-    background-color: #0288D1;
-    color: white;
+.stTextArea textarea {
+    font-size: 18px;
 }
 
 </style>
@@ -59,17 +42,11 @@ html, body, [class*="css"] {
 # HEADER
 # =====================================================
 
-st.markdown("""
-<h1 style='text-align:center;color:white;'>
-📊 Analisis Emosi & Sarkasme Nasabah
-</h1>
-""", unsafe_allow_html=True)
+st.title("📊 Analisis Emosi & Sarkasme Nasabah")
 
-st.markdown("""
-<p style='text-align:center;font-size:18px;color:gray;'>
-Prototype Analisis Emosi berbasis IndoBERT Transformer
-</p>
-""", unsafe_allow_html=True)
+st.caption(
+    "Prototype Analisis Emosi berbasis IndoBERT Transformer"
+)
 
 # =====================================================
 # MODEL
@@ -108,7 +85,7 @@ def load_model():
 # LOAD MODEL
 # =====================================================
 
-with st.spinner("🔄 Loading IndoBERT Model..."):
+with st.spinner("🔄 Loading Model..."):
 
     try:
 
@@ -132,37 +109,31 @@ emotion_styles = {
 
     "marah": {
         "emoji": "😡",
-        "color": "#E53935",
         "message": "Nasabah mengalami emosi marah"
     },
 
     "frustrasi": {
         "emoji": "😤",
-        "color": "#FB8C00",
         "message": "Nasabah menunjukkan frustrasi"
     },
 
     "cemas": {
         "emoji": "😰",
-        "color": "#8E24AA",
         "message": "Nasabah merasa cemas"
     },
 
     "senang": {
         "emoji": "😊",
-        "color": "#43A047",
         "message": "Nasabah merasa senang"
     },
 
     "puas": {
         "emoji": "😌",
-        "color": "#039BE5",
         "message": "Nasabah merasa puas"
     },
 
     "netral": {
         "emoji": "😐",
-        "color": "#546E7A",
         "message": "Nasabah menunjukkan emosi netral"
     }
 }
@@ -208,9 +179,7 @@ def detect_sarcasm(text):
         "mantap",
         "keren",
         "hebat",
-        "cepat",
-        "modern",
-        "canggih"
+        "cepat"
     ]
 
     negative_words = [
@@ -219,10 +188,7 @@ def detect_sarcasm(text):
         "maintenance",
         "lemot",
         "pending",
-        "gangguan",
-        "timeout",
-        "saldo hilang",
-        "loading terus"
+        "gangguan"
     ]
 
     pos_found = any(
@@ -235,31 +201,7 @@ def detect_sarcasm(text):
         for word in negative_words
     )
 
-    if pos_found and neg_found:
-        return True
-
-    sarcasm_patterns = [
-
-        r"bagus.*gagal",
-
-        r"mantap.*error",
-
-        r"keren.*maintenance",
-
-        r"cepat.*lemot",
-
-        r"modern.*lemot",
-
-        r"canggih.*gangguan"
-    ]
-
-    for pattern in sarcasm_patterns:
-
-        if re.search(pattern, text):
-
-            return True
-
-    return False
+    return pos_found and neg_found
 
 # =====================================================
 # DETECT SENTIMENT
@@ -281,11 +223,7 @@ def detect_sentiment(emotion):
 # INPUT
 # =====================================================
 
-st.markdown("""
-<h3 style='color:white;'>
-✍️ Masukkan Ulasan Nasabah
-</h3>
-""", unsafe_allow_html=True)
+st.subheader("✍️ Masukkan Ulasan Nasabah")
 
 text = st.text_area(
     "",
@@ -329,63 +267,18 @@ if st.button("🔍 Analisis Sekarang"):
             is_sarcasm = detect_sarcasm(text)
 
         # =====================================================
-        # RESULT TITLE
+        # HASIL ANALISIS
         # =====================================================
 
         st.markdown("---")
 
-        st.markdown("""
-<h2 style='
-    text-align:center;
-    color:white;
-'>
-📌 Hasil Analisis
-</h2>
-""", unsafe_allow_html=True)
+        st.subheader("📌 Hasil Analisis")
 
-        # =====================================================
-        # EMOTION CARD
-        # =====================================================
-
-        st.markdown(
-            f"""
-<div style='
-    background-color:{style["color"]};
-    padding:35px;
-    border-radius:25px;
-    text-align:center;
-    margin-top:20px;
-    margin-bottom:25px;
-    color:white;
-'>
-
-    <div style='
-        font-size:60px;
-        margin-bottom:10px;
-    '>
-        {style["emoji"]}
-    </div>
-
-    <div style='
-        font-size:40px;
-        font-weight:bold;
-        margin-bottom:10px;
-        color:white;
-    '>
-        {label.upper()}
-    </div>
-
-    <div style='
-        font-size:20px;
-        color:white;
-    '>
-        {style["message"]}
-    </div>
-
-</div>
-""",
-            unsafe_allow_html=True
+        st.info(
+            f"{style['emoji']} EMOSI : {label.upper()}"
         )
+
+        st.write(style["message"])
 
         # =====================================================
         # METRICS
@@ -408,48 +301,24 @@ if st.button("🔍 Analisis Sekarang"):
             )
 
         # =====================================================
-        # SARCASM RESULT
+        # SARCASM
         # =====================================================
 
-        st.markdown("""
-<h3 style='color:white;'>
-🧠 Hasil Deteksi Sarkasme
-</h3>
-""", unsafe_allow_html=True)
+        st.subheader(
+            "🧠 Hasil Deteksi Sarkasme"
+        )
 
         if is_sarcasm:
 
-            st.markdown("""
-<div style='
-    background-color:#E53935;
-    padding:20px;
-    border-radius:15px;
-    color:white;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-    margin-top:10px;
-'>
-⚠️ Sarkasme Terdeteksi
-</div>
-""", unsafe_allow_html=True)
+            st.error(
+                "⚠️ Sarkasme Terdeteksi"
+            )
 
         else:
 
-            st.markdown("""
-<div style='
-    background-color:#43A047;
-    padding:20px;
-    border-radius:15px;
-    color:white;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-    margin-top:10px;
-'>
-✅ Tidak Mengandung Sarkasme
-</div>
-""", unsafe_allow_html=True)
+            st.success(
+                "✅ Tidak Mengandung Sarkasme"
+            )
 
 # =====================================================
 # FOOTER
@@ -457,11 +326,6 @@ if st.button("🔍 Analisis Sekarang"):
 
 st.markdown("---")
 
-st.markdown("""
-<p style='
-    text-align:center;
-    color:gray;
-'>
-Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking
-</p>
-""", unsafe_allow_html=True)
+st.caption(
+    "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking"
+)
