@@ -60,21 +60,13 @@ html, body, [class*="css"] {
 # =====================================================
 
 st.markdown("""
-<h1 style="
-    text-align:center;
-    color:white;
-">
+<h1 style='text-align:center;color:white;'>
 📊 Analisis Emosi & Sarkasme Nasabah
 </h1>
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<p style="
-    text-align:center;
-    font-size:18px;
-    color:gray;
-    margin-bottom:30px;
-">
+<p style='text-align:center;font-size:18px;color:gray;'>
 Prototype Analisis Emosi berbasis IndoBERT Transformer
 </p>
 """, unsafe_allow_html=True)
@@ -290,7 +282,7 @@ def detect_sentiment(emotion):
 # =====================================================
 
 st.markdown("""
-<h3 style="color:white;">
+<h3 style='color:white;'>
 ✍️ Masukkan Ulasan Nasabah
 </h3>
 """, unsafe_allow_html=True)
@@ -343,57 +335,55 @@ if st.button("🔍 Analisis Sekarang"):
         st.markdown("---")
 
         st.markdown("""
-        <h2 style="
-            text-align:center;
-            color:white;
-        ">
-            📌 Hasil Analisis
-        </h2>
-        """, unsafe_allow_html=True)
+<h2 style='
+    text-align:center;
+    color:white;
+'>
+📌 Hasil Analisis
+</h2>
+""", unsafe_allow_html=True)
 
         # =====================================================
         # EMOTION CARD
         # =====================================================
 
-        card_html = f"""
-        <div style="
-            background-color:{style['color']};
-            padding:35px;
-            border-radius:25px;
-            text-align:center;
-            margin-top:20px;
-            margin-bottom:25px;
-            color:white;
-        ">
-
-            <div style="
-                font-size:60px;
-                margin-bottom:10px;
-            ">
-                {style['emoji']}
-            </div>
-
-            <div style="
-                font-size:40px;
-                font-weight:bold;
-                margin-bottom:10px;
-                color:white;
-            ">
-                {label.upper()}
-            </div>
-
-            <div style="
-                font-size:20px;
-                color:white;
-            ">
-                {style['message']}
-            </div>
-
-        </div>
-        """
-
         st.markdown(
-            card_html,
+            f"""
+<div style='
+    background-color:{style["color"]};
+    padding:35px;
+    border-radius:25px;
+    text-align:center;
+    margin-top:20px;
+    margin-bottom:25px;
+    color:white;
+'>
+
+    <div style='
+        font-size:60px;
+        margin-bottom:10px;
+    '>
+        {style["emoji"]}
+    </div>
+
+    <div style='
+        font-size:40px;
+        font-weight:bold;
+        margin-bottom:10px;
+        color:white;
+    '>
+        {label.upper()}
+    </div>
+
+    <div style='
+        font-size:20px;
+        color:white;
+    '>
+        {style["message"]}
+    </div>
+
+</div>
+""",
             unsafe_allow_html=True
         )
 
@@ -422,49 +412,44 @@ if st.button("🔍 Analisis Sekarang"):
         # =====================================================
 
         st.markdown("""
-        <h3 style="color:white;">
-        🧠 Hasil Deteksi Sarkasme
-        </h3>
-        """, unsafe_allow_html=True)
+<h3 style='color:white;'>
+🧠 Hasil Deteksi Sarkasme
+</h3>
+""", unsafe_allow_html=True)
 
         if is_sarcasm:
 
-            sarcasm_html = """
-            <div style="
-                background-color:#E53935;
-                padding:20px;
-                border-radius:15px;
-                color:white;
-                text-align:center;
-                font-size:24px;
-                font-weight:bold;
-                margin-top:10px;
-            ">
-                ⚠️ Sarkasme Terdeteksi
-            </div>
-            """
+            st.markdown("""
+<div style='
+    background-color:#E53935;
+    padding:20px;
+    border-radius:15px;
+    color:white;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin-top:10px;
+'>
+⚠️ Sarkasme Terdeteksi
+</div>
+""", unsafe_allow_html=True)
 
         else:
 
-            sarcasm_html = """
-            <div style="
-                background-color:#43A047;
-                padding:20px;
-                border-radius:15px;
-                color:white;
-                text-align:center;
-                font-size:24px;
-                font-weight:bold;
-                margin-top:10px;
-            ">
-                ✅ Tidak Mengandung Sarkasme
-            </div>
-            """
-
-        st.markdown(
-            sarcasm_html,
-            unsafe_allow_html=True
-        )
+            st.markdown("""
+<div style='
+    background-color:#43A047;
+    padding:20px;
+    border-radius:15px;
+    color:white;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin-top:10px;
+'>
+✅ Tidak Mengandung Sarkasme
+</div>
+""", unsafe_allow_html=True)
 
 # =====================================================
 # FOOTER
@@ -473,10 +458,10 @@ if st.button("🔍 Analisis Sekarang"):
 st.markdown("---")
 
 st.markdown("""
-<p style="
+<p style='
     text-align:center;
     color:gray;
-">
+'>
 Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking
 </p>
 """, unsafe_allow_html=True)
