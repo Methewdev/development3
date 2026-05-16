@@ -22,21 +22,33 @@ st.set_page_config(
 # TITLE
 # =====================================================
 
-st.title("📊 Analisis Emosi & Sarkasme Nasabah")
+st.markdown("""
+<h1 style="
+    text-align:center;
+">
+    📊 Analisis Emosi & Sarkasme Nasabah
+</h1>
+""", unsafe_allow_html=True)
 
 st.markdown("""
-Prototype Analisis Emosi dan Sarkasme  
+<p style="
+    text-align:center;
+    font-size:18px;
+    color:gray;
+">
+Prototype Analisis Emosi dan Sarkasme
 berbasis IndoBERT Transformer
-""")
+</p>
+""", unsafe_allow_html=True)
 
 # =====================================================
-# LOAD MODEL HUGGINGFACE
+# MODEL
 # =====================================================
 
 MODEL_NAME = "envidevelopment/model3"
 
 # =====================================================
-# EMOTION LABEL
+# EMOTION LABELS
 # =====================================================
 
 emotion_classes = [
@@ -69,13 +81,13 @@ def load_model():
         tokenizer=tokenizer,
         truncation=True,
         max_length=128,
-        device=0 if torch.cuda.is_available() else -1
+        device=-1
     )
 
     return classifier
 
 # =====================================================
-# MODEL LOADING
+# LOAD MODEL UI
 # =====================================================
 
 with st.spinner("🔄 Loading IndoBERT Model..."):
@@ -102,43 +114,43 @@ emotion_styles = {
 
     "marah": {
         "emoji": "😡",
-        "color": "#FF4B4B",
+        "color": "#E53935",
         "message": "Nasabah mengalami emosi marah"
     },
 
     "frustrasi": {
         "emoji": "😤",
-        "color": "#FF9800",
+        "color": "#FB8C00",
         "message": "Nasabah menunjukkan frustrasi"
     },
 
     "cemas": {
         "emoji": "😰",
-        "color": "#8E44AD",
+        "color": "#8E24AA",
         "message": "Nasabah merasa cemas"
     },
 
     "senang": {
         "emoji": "😊",
-        "color": "#00C853",
+        "color": "#43A047",
         "message": "Nasabah merasa senang"
     },
 
     "puas": {
         "emoji": "😌",
-        "color": "#03A9F4",
+        "color": "#039BE5",
         "message": "Nasabah merasa puas"
     },
 
     "netral": {
         "emoji": "😐",
-        "color": "#607D8B",
+        "color": "#546E7A",
         "message": "Nasabah menunjukkan emosi netral"
     }
 }
 
 # =====================================================
-# CLEANING TEXT
+# CLEAN TEXT
 # =====================================================
 
 def clean_text(text):
@@ -183,9 +195,9 @@ def predict_emotion(text):
 
         score = prediction["score"]
 
-        # =====================================================
+        # ==============================
         # HANDLE LABEL
-        # =====================================================
+        # ==============================
 
         if label in emotion_classes:
 
@@ -205,10 +217,7 @@ def predict_emotion(text):
 
                 emotion = "netral"
 
-        return (
-            emotion,
-            score
-        )
+        return emotion, score
 
     except Exception as e:
 
@@ -216,22 +225,15 @@ def predict_emotion(text):
             f"❌ Error prediksi model: {e}"
         )
 
-        return (
-            "netral",
-            0.0
-        )
+        return "netral", 0.0
 
 # =====================================================
-# HYBRID SARCASM DETECTION
+# SARCASM DETECTION
 # =====================================================
 
 def detect_sarcasm(text):
 
     text = clean_text(text)
-
-    # =====================================================
-    # POSITIVE WORDS
-    # =====================================================
 
     positive_words = [
         "bagus",
@@ -239,16 +241,9 @@ def detect_sarcasm(text):
         "keren",
         "hebat",
         "cepat",
-        "terima kasih",
-        "luar biasa",
         "modern",
-        "canggih",
-        "top"
+        "canggih"
     ]
-
-    # =====================================================
-    # NEGATIVE WORDS
-    # =====================================================
 
     negative_words = [
         "gagal",
@@ -257,33 +252,24 @@ def detect_sarcasm(text):
         "lemot",
         "pending",
         "gangguan",
-        "force close",
-        "tidak bisa",
-        "lambat",
         "timeout",
-        "loading terus",
-        "saldo hilang"
+        "saldo hilang",
+        "loading terus"
     ]
 
     pos_found = any(
-        word in text for word in positive_words
+        word in text
+        for word in positive_words
     )
 
     neg_found = any(
-        word in text for word in negative_words
+        word in text
+        for word in negative_words
     )
-
-    # =====================================================
-    # CONTRADICTION DETECTION
-    # =====================================================
 
     if pos_found and neg_found:
 
         return True
-
-    # =====================================================
-    # SARCASM PATTERN
-    # =====================================================
 
     sarcasm_patterns = [
 
@@ -292,8 +278,6 @@ def detect_sarcasm(text):
         r"mantap.*error",
 
         r"keren.*maintenance",
-
-        r"terima kasih.*error",
 
         r"cepat.*lemot",
 
@@ -311,33 +295,31 @@ def detect_sarcasm(text):
     return False
 
 # =====================================================
-# SENTIMENT DETECTION
+# DETECT SENTIMENT
 # =====================================================
 
 def detect_sentiment(emotion):
 
-    positive_emotions = [
+    positive = [
         "senang",
         "puas"
     ]
 
-    negative_emotions = [
+    negative = [
         "marah",
         "frustrasi",
         "cemas"
     ]
 
-    if emotion in positive_emotions:
+    if emotion in positive:
 
         return "Positif"
 
-    elif emotion in negative_emotions:
+    elif emotion in negative:
 
         return "Negatif"
 
-    else:
-
-        return "Netral"
+    return "Netral"
 
 # =====================================================
 # INPUT
@@ -347,8 +329,8 @@ st.markdown("### ✍️ Masukkan Ulasan Nasabah")
 
 text = st.text_area(
     "",
-    height=150,
-    placeholder="Contoh: Bagus banget aplikasinya transfer gagal terus..."
+    height=170,
+    placeholder="Contoh: Bagus banget aplikasinya transfer gagal terus"
 )
 
 # =====================================================
@@ -387,12 +369,19 @@ if st.button("🔍 Analisis Sekarang"):
         )
 
         # =====================================================
-        # RESULT HEADER
+        # RESULT TITLE
         # =====================================================
 
         st.markdown("---")
 
-        st.markdown("## 📌 Hasil Analisis")
+        st.markdown("""
+        <h2 style="
+            text-align:center;
+            margin-bottom:20px;
+        ">
+            📌 Hasil Analisis
+        </h2>
+        """, unsafe_allow_html=True)
 
         # =====================================================
         # EMOTION CARD
@@ -402,11 +391,11 @@ if st.button("🔍 Analisis Sekarang"):
             f"""
             <div style="
                 background-color:{style['color']};
-                padding:25px;
-                border-radius:15px;
+                padding:30px;
+                border-radius:20px;
                 text-align:center;
                 color:white;
-                margin-bottom:20px;
+                margin-bottom:25px;
             ">
 
                 <h1>
@@ -414,7 +403,7 @@ if st.button("🔍 Analisis Sekarang"):
                 </h1>
 
                 <p style="
-                    font-size:18px;
+                    font-size:20px;
                 ">
                     {style['message']}
                 </p>
@@ -455,12 +444,12 @@ if st.button("🔍 Analisis Sekarang"):
             st.markdown(
                 """
                 <div style="
-                    background-color:#FF5252;
-                    padding:15px;
-                    border-radius:10px;
+                    background-color:#E53935;
+                    padding:18px;
+                    border-radius:12px;
                     color:white;
                     text-align:center;
-                    font-size:20px;
+                    font-size:22px;
                     font-weight:bold;
                 ">
                     ⚠️ Sarkasme Terdeteksi
@@ -474,12 +463,12 @@ if st.button("🔍 Analisis Sekarang"):
             st.markdown(
                 """
                 <div style="
-                    background-color:#00C853;
-                    padding:15px;
-                    border-radius:10px;
+                    background-color:#43A047;
+                    padding:18px;
+                    border-radius:12px;
                     color:white;
                     text-align:center;
-                    font-size:20px;
+                    font-size:22px;
                     font-weight:bold;
                 ">
                     ✅ Tidak Mengandung Sarkasme
@@ -487,49 +476,6 @@ if st.button("🔍 Analisis Sekarang"):
                 """,
                 unsafe_allow_html=True
             )
-
-        # =====================================================
-        # CLEANED TEXT
-        # =====================================================
-
-        st.markdown("### 🧹 Hasil Cleaning Text")
-
-        st.code(
-            clean_text(text)
-        )
-
-# =====================================================
-# SAMPLE TEXT
-# =====================================================
-
-st.markdown("---")
-
-st.subheader("📌 Contoh Ulasan")
-
-samples = [
-
-    "Bagus banget aplikasinya transfer gagal terus",
-
-    "Mantap maintenance tiap malam",
-
-    "Aplikasi sangat membantu transaksi",
-
-    "Saya takut saldo hilang",
-
-    "Login cepat dan aman",
-
-    "Terima kasih Livin error terus",
-
-    "Keren banget maintenance tiap gajian",
-
-    "Aplikasi modern dengan nuansa warnet tahun 2000-an",
-
-    "Transfer cepat sekali sampai besok belum masuk"
-]
-
-for s in samples:
-
-    st.code(s)
 
 # =====================================================
 # FOOTER
