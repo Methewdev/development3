@@ -1,6 +1,12 @@
 import streamlit as st
-import requests
 import re
+import torch
+
+from transformers import (
+    pipeline,
+    AutoTokenizer,
+    AutoModelForSequenceClassification
+)
 
 # =====================================================
 # PAGE CONFIG
@@ -24,20 +30,10 @@ berbasis IndoBERT Transformer
 """)
 
 # =====================================================
-# HUGGINGFACE CONFIG
+# LOAD MODEL HUGGINGFACE
 # =====================================================
 
-API_URL = "https://api-inference.huggingface.co/models/envidevelopment/model3"
-
-# =====================================================
-# GANTI DENGAN TOKEN HUGGINGFACE ANDA
-# =====================================================
-
-HF_TOKEN = "hf_xxxxxxxxxxxxxxxxxxxxxxxxx"
-
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
-}
+MODEL_NAME = "envidevelopment/model3"
 
 # =====================================================
 # EMOTION LABEL
@@ -51,6 +47,52 @@ emotion_classes = [
     "puas",
     "senang"
 ]
+
+# =====================================================
+# LOAD MODEL
+# =====================================================
+
+@st.cache_resource
+def load_model():
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_NAME
+    )
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME
+    )
+
+    classifier = pipeline(
+        "text-classification",
+        model=model,
+        tokenizer=tokenizer,
+        truncation=True,
+        max_length=128,
+        device=0 if torch.cuda.is_available() else -1
+    )
+
+    return classifier
+
+# =====================================================
+# MODEL LOADING
+# =====================================================
+
+with st.spinner("🔄 Loading IndoBERT Model..."):
+
+    try:
+
+        classifier = load_model()
+
+        st.success("✅ Model berhasil dimuat")
+
+    except Exception as e:
+
+        st.error("❌ Gagal memuat model")
+
+        st.code(str(e))
+
+        st.stop()
 
 # =====================================================
 # EMOTION STYLE
@@ -124,97 +166,6 @@ def clean_text(text):
     return text
 
 # =====================================================
-# QUERY MODEL
-# =====================================================
-
-def query_model(payload):
-
-    try:
-
-        response = requests.post(
-            API_URL,
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
-
-        # =====================================================
-        # API ERROR
-        # =====================================================
-
-        if response.status_code != 200:
-
-            st.error(
-                f"❌ API Error: {response.status_code}"
-            )
-
-            st.code(response.text)
-
-            return None
-
-        # =====================================================
-        # EMPTY RESPONSE
-        # =====================================================
-
-        if response.text.strip() == "":
-
-            st.error(
-                "❌ Response kosong dari HuggingFace"
-            )
-
-            return None
-
-        # =====================================================
-        # JSON CONVERT
-        # =====================================================
-
-        try:
-
-            result = response.json()
-
-        except Exception:
-
-            st.error(
-                "❌ Response bukan JSON valid"
-            )
-
-            st.code(response.text)
-
-            return None
-
-        # =====================================================
-        # HANDLE HF ERROR
-        # =====================================================
-
-        if isinstance(result, dict):
-
-            if "error" in result:
-
-                st.error(
-                    f"❌ HuggingFace Error: {result['error']}"
-                )
-
-                return None
-
-        return result
-
-    except requests.exceptions.Timeout:
-
-        st.error(
-            "⏳ Request timeout. Model mungkin masih loading."
-        )
-
-        return None
-
-    except Exception as e:
-
-        st.error(
-            f"❌ Request Error: {str(e)}"
-        )
-
-        return None
-
-# =====================================================
 # PREDICT EMOTION
 # =====================================================
 
@@ -222,39 +173,18 @@ def predict_emotion(text):
 
     cleaned = clean_text(text)
 
-    output = query_model({
-        "inputs": cleaned
-    })
-
-    # =====================================================
-    # FAILED RESPONSE
-    # =====================================================
-
-    if output is None:
-
-        return (
-            "netral",
-            0.0
-        )
-
     try:
 
-        prediction = output[0]
+        result = classifier(cleaned)
 
-        # =====================================================
-        # IF LIST
-        # =====================================================
-
-        if isinstance(prediction, list):
-
-            prediction = prediction[0]
+        prediction = result[0]
 
         label = prediction["label"]
 
         score = prediction["score"]
 
         # =====================================================
-        # LABEL HANDLING
+        # HANDLE LABEL
         # =====================================================
 
         if label in emotion_classes:
@@ -263,11 +193,17 @@ def predict_emotion(text):
 
         else:
 
-            label_id = int(
-                label.split("_")[-1]
-            )
+            try:
 
-            emotion = emotion_classes[label_id]
+                label_id = int(
+                    label.split("_")[-1]
+                )
+
+                emotion = emotion_classes[label_id]
+
+            except:
+
+                emotion = "netral"
 
         return (
             emotion,
@@ -277,10 +213,8 @@ def predict_emotion(text):
     except Exception as e:
 
         st.error(
-            "❌ Format output model tidak sesuai"
+            f"❌ Error prediksi model: {e}"
         )
-
-        st.write(output)
 
         return (
             "netral",
@@ -306,7 +240,10 @@ def detect_sarcasm(text):
         "hebat",
         "cepat",
         "terima kasih",
-        "luar biasa"
+        "luar biasa",
+        "modern",
+        "canggih",
+        "top"
     ]
 
     # =====================================================
@@ -322,7 +259,10 @@ def detect_sarcasm(text):
         "gangguan",
         "force close",
         "tidak bisa",
-        "lambat"
+        "lambat",
+        "timeout",
+        "loading terus",
+        "saldo hilang"
     ]
 
     pos_found = any(
@@ -341,7 +281,63 @@ def detect_sarcasm(text):
 
         return True
 
+    # =====================================================
+    # SARCASM PATTERN
+    # =====================================================
+
+    sarcasm_patterns = [
+
+        r"bagus.*gagal",
+
+        r"mantap.*error",
+
+        r"keren.*maintenance",
+
+        r"terima kasih.*error",
+
+        r"cepat.*lemot",
+
+        r"modern.*lemot",
+
+        r"canggih.*gangguan"
+    ]
+
+    for pattern in sarcasm_patterns:
+
+        if re.search(pattern, text):
+
+            return True
+
     return False
+
+# =====================================================
+# SENTIMENT DETECTION
+# =====================================================
+
+def detect_sentiment(emotion):
+
+    positive_emotions = [
+        "senang",
+        "puas"
+    ]
+
+    negative_emotions = [
+        "marah",
+        "frustrasi",
+        "cemas"
+    ]
+
+    if emotion in positive_emotions:
+
+        return "Positif"
+
+    elif emotion in negative_emotions:
+
+        return "Negatif"
+
+    else:
+
+        return "Netral"
 
 # =====================================================
 # INPUT
@@ -351,6 +347,7 @@ st.markdown("### ✍️ Masukkan Ulasan Nasabah")
 
 text = st.text_area(
     "",
+    height=150,
     placeholder="Contoh: Bagus banget aplikasinya transfer gagal terus..."
 )
 
@@ -369,18 +366,25 @@ if st.button("🔍 Analisis Sekarang"):
     else:
 
         with st.spinner(
-            "Menganalisis emosi..."
+            "🔄 Sedang menganalisis..."
         ):
 
             emotion, confidence = predict_emotion(
                 text
             )
 
+            sentiment = detect_sentiment(
+                emotion
+            )
+
             is_sarcasm = detect_sarcasm(
                 text
             )
 
-        style = emotion_styles[emotion]
+        style = emotion_styles.get(
+            emotion,
+            emotion_styles["netral"]
+        )
 
         # =====================================================
         # RESULT HEADER
@@ -404,6 +408,7 @@ if st.button("🔍 Analisis Sekarang"):
                 color:white;
                 margin-bottom:20px;
             ">
+
                 <h1>
                     {style['emoji']} {emotion.upper()}
                 </h1>
@@ -413,19 +418,31 @@ if st.button("🔍 Analisis Sekarang"):
                 ">
                     {style['message']}
                 </p>
+
             </div>
             """,
             unsafe_allow_html=True
         )
 
         # =====================================================
-        # CONFIDENCE
+        # METRICS
         # =====================================================
 
-        st.metric(
-            "🎯 Confidence Score",
-            f"{confidence*100:.2f}%"
-        )
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            st.metric(
+                "🎯 Confidence",
+                f"{confidence*100:.2f}%"
+            )
+
+        with col2:
+
+            st.metric(
+                "💬 Sentimen",
+                sentiment
+            )
 
         # =====================================================
         # SARCASM RESULT
@@ -472,7 +489,7 @@ if st.button("🔍 Analisis Sekarang"):
             )
 
         # =====================================================
-        # CLEANING RESULT
+        # CLEANED TEXT
         # =====================================================
 
         st.markdown("### 🧹 Hasil Cleaning Text")
@@ -503,7 +520,11 @@ samples = [
 
     "Terima kasih Livin error terus",
 
-    "Keren banget maintenance tiap gajian"
+    "Keren banget maintenance tiap gajian",
+
+    "Aplikasi modern dengan nuansa warnet tahun 2000-an",
+
+    "Transfer cepat sekali sampai besok belum masuk"
 ]
 
 for s in samples:
@@ -517,5 +538,5 @@ for s in samples:
 st.markdown("---")
 
 st.caption(
-    "Prototype Analisis Emosi & Sarkasme Mobile Banking | IndoBERT Transformer"
+    "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking | IndoBERT Transformer"
 )
