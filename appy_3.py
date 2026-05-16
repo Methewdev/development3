@@ -51,20 +51,13 @@ st.markdown("""
 # =====================================================
 
 st.markdown("""
-<h1 style="
-    text-align:center;
-    color:white;
-">
+<h1 style='text-align:center;color:white;'>
 📊 Analisis Emosi & Sarkasme Nasabah
 </h1>
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<p style="
-    text-align:center;
-    font-size:18px;
-    color:gray;
-">
+<p style='text-align:center;font-size:18px;color:gray;'>
 Prototype Analisis Emosi berbasis IndoBERT Transformer
 </p>
 """, unsafe_allow_html=True)
@@ -74,6 +67,19 @@ Prototype Analisis Emosi berbasis IndoBERT Transformer
 # =====================================================
 
 MODEL_NAME = "envidevelopment/model3"
+
+# =====================================================
+# LABEL MAPPING
+# =====================================================
+
+label_mapping = {
+    "LABEL_0": "cemas",
+    "LABEL_1": "frustrasi",
+    "LABEL_2": "marah",
+    "LABEL_3": "netral",
+    "LABEL_4": "puas",
+    "LABEL_5": "senang"
+}
 
 # =====================================================
 # LOAD MODEL
@@ -90,7 +96,7 @@ def load_model():
     return classifier
 
 # =====================================================
-# MODEL LOADING
+# LOAD MODEL
 # =====================================================
 
 with st.spinner("🔄 Loading IndoBERT Model..."):
@@ -206,8 +212,7 @@ def detect_sarcasm(text):
         "pending",
         "gangguan",
         "timeout",
-        "saldo hilang",
-        "loading terus"
+        "saldo hilang"
     ]
 
     pos_found = any(
@@ -220,55 +225,19 @@ def detect_sarcasm(text):
         for word in negative_words
     )
 
-    if pos_found and neg_found:
-
-        return True
-
-    sarcasm_patterns = [
-
-        r"bagus.*gagal",
-
-        r"mantap.*error",
-
-        r"keren.*maintenance",
-
-        r"cepat.*lemot",
-
-        r"modern.*lemot",
-
-        r"canggih.*gangguan"
-    ]
-
-    for pattern in sarcasm_patterns:
-
-        if re.search(pattern, text):
-
-            return True
-
-    return False
+    return pos_found and neg_found
 
 # =====================================================
-# DETECT SENTIMENT
+# SENTIMENT
 # =====================================================
 
 def detect_sentiment(emotion):
 
-    positive = [
-        "senang",
-        "puas"
-    ]
-
-    negative = [
-        "marah",
-        "frustrasi",
-        "cemas"
-    ]
-
-    if emotion in positive:
+    if emotion in ["senang", "puas"]:
 
         return "Positif"
 
-    elif emotion in negative:
+    elif emotion in ["marah", "frustrasi", "cemas"]:
 
         return "Negatif"
 
@@ -300,52 +269,34 @@ if st.button("🔍 Analisis Sekarang"):
 
     else:
 
-        with st.spinner(
-            "🔄 Sedang menganalisis..."
-        ):
+        with st.spinner("🔄 Sedang menganalisis..."):
 
             cleaned = clean_text(text)
 
             result = classifier(cleaned)
 
-            label = result[0]["label"].lower()
+            raw_label = result[0]["label"]
 
             confidence = result[0]["score"]
 
-            # =====================================================
-            # HANDLE LABEL
-            # =====================================================
+            label = label_mapping.get(
+                raw_label,
+                "netral"
+            )
 
-            if label not in emotion_styles:
-
-                label = "netral"
+            style = emotion_styles[label]
 
             sentiment = detect_sentiment(label)
 
             is_sarcasm = detect_sarcasm(text)
 
-            style = emotion_styles[label]
-
         # =====================================================
-        # RESULT TITLE
+        # RESULT
         # =====================================================
 
         st.markdown("---")
 
-        st.markdown("""
-        <h2 style="
-            text-align:center;
-            color:white;
-        ">
-            📌 Hasil Analisis
-        </h2>
-        """, unsafe_allow_html=True)
-
-        # =====================================================
-        # EMOTION CARD
-        # =====================================================
-
-        st.markdown(f"""
+        html_card = f"""
         <div style="
             background-color:{style['color']};
             padding:35px;
@@ -356,18 +307,24 @@ if st.button("🔍 Analisis Sekarang"):
             margin-bottom:25px;
         ">
 
-            <h1>
+            <h1 style="color:white;">
                 {style['emoji']} {label.upper()}
             </h1>
 
             <p style="
                 font-size:20px;
+                color:white;
             ">
                 {style['message']}
             </p>
 
         </div>
-        """, unsafe_allow_html=True)
+        """
+
+        st.markdown(
+            html_card,
+            unsafe_allow_html=True
+        )
 
         # =====================================================
         # METRICS
@@ -390,44 +347,22 @@ if st.button("🔍 Analisis Sekarang"):
             )
 
         # =====================================================
-        # SARCASM RESULT
+        # SARCASM
         # =====================================================
 
         st.markdown("### 🧠 Hasil Deteksi Sarkasme")
 
         if is_sarcasm:
 
-            st.markdown("""
-            <div style="
-                background-color:#E53935;
-                padding:18px;
-                border-radius:12px;
-                color:white;
-                text-align:center;
-                font-size:22px;
-                font-weight:bold;
-                margin-top:10px;
-            ">
-                ⚠️ Sarkasme Terdeteksi
-            </div>
-            """, unsafe_allow_html=True)
+            st.error(
+                "⚠️ Sarkasme Terdeteksi"
+            )
 
         else:
 
-            st.markdown("""
-            <div style="
-                background-color:#43A047;
-                padding:18px;
-                border-radius:12px;
-                color:white;
-                text-align:center;
-                font-size:22px;
-                font-weight:bold;
-                margin-top:10px;
-            ">
-                ✅ Tidak Mengandung Sarkasme
-            </div>
-            """, unsafe_allow_html=True)
+            st.success(
+                "✅ Tidak Mengandung Sarkasme"
+            )
 
 # =====================================================
 # FOOTER
@@ -436,5 +371,5 @@ if st.button("🔍 Analisis Sekarang"):
 st.markdown("---")
 
 st.caption(
-    "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking | IndoBERT Transformer"
+    "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking"
 )
