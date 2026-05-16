@@ -27,7 +27,7 @@ berbasis IndoBERT Transformer
 # HUGGINGFACE CONFIG
 # =====================================================
 
-API_URL = "https://api-inference.huggingface.co/models/indobenchmark/indobert-base-p1"
+API_URL = "https://api-inference.huggingface.co/models/envidevelopment/model3"
 
 # =====================================================
 # GANTI DENGAN TOKEN HUGGINGFACE ANDA
