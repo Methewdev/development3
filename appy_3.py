@@ -1,12 +1,6 @@
 import streamlit as st
 import re
-import torch
-
-from transformers import (
-    pipeline,
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
+from transformers import pipeline
 
 # =====================================================
 # PAGE CONFIG
@@ -19,14 +13,49 @@ st.set_page_config(
 )
 
 # =====================================================
-# TITLE
+# CUSTOM CSS
+# =====================================================
+
+st.markdown("""
+<style>
+
+.main {
+    background-color: #0E1117;
+}
+
+.stTextArea textarea {
+    font-size: 18px;
+    border-radius: 12px;
+}
+
+.stButton button {
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
+    border-radius: 12px;
+    background-color: #03A9F4;
+    color: white;
+    border: none;
+}
+
+.stButton button:hover {
+    background-color: #0288D1;
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# HEADER
 # =====================================================
 
 st.markdown("""
 <h1 style="
     text-align:center;
+    color:white;
 ">
-    📊 Analisis Emosi & Sarkasme Nasabah
+📊 Analisis Emosi & Sarkasme Nasabah
 </h1>
 """, unsafe_allow_html=True)
 
@@ -36,8 +65,7 @@ st.markdown("""
     font-size:18px;
     color:gray;
 ">
-Prototype Analisis Emosi dan Sarkasme
-berbasis IndoBERT Transformer
+Prototype Analisis Emosi berbasis IndoBERT Transformer
 </p>
 """, unsafe_allow_html=True)
 
@@ -48,46 +76,21 @@ berbasis IndoBERT Transformer
 MODEL_NAME = "envidevelopment/model3"
 
 # =====================================================
-# EMOTION LABELS
-# =====================================================
-
-emotion_classes = [
-    "cemas",
-    "frustrasi",
-    "marah",
-    "netral",
-    "puas",
-    "senang"
-]
-
-# =====================================================
 # LOAD MODEL
 # =====================================================
 
 @st.cache_resource
 def load_model():
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        MODEL_NAME
-    )
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME
-    )
-
     classifier = pipeline(
         "text-classification",
-        model=model,
-        tokenizer=tokenizer,
-        truncation=True,
-        max_length=128,
-        device=-1
+        model=MODEL_NAME
     )
 
     return classifier
 
 # =====================================================
-# LOAD MODEL UI
+# MODEL LOADING
 # =====================================================
 
 with st.spinner("🔄 Loading IndoBERT Model..."):
@@ -178,57 +181,7 @@ def clean_text(text):
     return text
 
 # =====================================================
-# PREDICT EMOTION
-# =====================================================
-
-def predict_emotion(text):
-
-    cleaned = clean_text(text)
-
-    try:
-
-        result = classifier(cleaned)
-
-        prediction = result[0]
-
-        label = prediction["label"]
-
-        score = prediction["score"]
-
-        # ==============================
-        # HANDLE LABEL
-        # ==============================
-
-        if label in emotion_classes:
-
-            emotion = label
-
-        else:
-
-            try:
-
-                label_id = int(
-                    label.split("_")[-1]
-                )
-
-                emotion = emotion_classes[label_id]
-
-            except:
-
-                emotion = "netral"
-
-        return emotion, score
-
-    except Exception as e:
-
-        st.error(
-            f"❌ Error prediksi model: {e}"
-        )
-
-        return "netral", 0.0
-
-# =====================================================
-# SARCASM DETECTION
+# DETECT SARCASM
 # =====================================================
 
 def detect_sarcasm(text):
@@ -351,22 +304,27 @@ if st.button("🔍 Analisis Sekarang"):
             "🔄 Sedang menganalisis..."
         ):
 
-            emotion, confidence = predict_emotion(
-                text
-            )
+            cleaned = clean_text(text)
 
-            sentiment = detect_sentiment(
-                emotion
-            )
+            result = classifier(cleaned)
 
-            is_sarcasm = detect_sarcasm(
-                text
-            )
+            label = result[0]["label"].lower()
 
-        style = emotion_styles.get(
-            emotion,
-            emotion_styles["netral"]
-        )
+            confidence = result[0]["score"]
+
+            # =====================================================
+            # HANDLE LABEL
+            # =====================================================
+
+            if label not in emotion_styles:
+
+                label = "netral"
+
+            sentiment = detect_sentiment(label)
+
+            is_sarcasm = detect_sarcasm(text)
+
+            style = emotion_styles[label]
 
         # =====================================================
         # RESULT TITLE
@@ -377,7 +335,7 @@ if st.button("🔍 Analisis Sekarang"):
         st.markdown("""
         <h2 style="
             text-align:center;
-            margin-bottom:20px;
+            color:white;
         ">
             📌 Hasil Analisis
         </h2>
@@ -387,31 +345,29 @@ if st.button("🔍 Analisis Sekarang"):
         # EMOTION CARD
         # =====================================================
 
-        st.markdown(
-            f"""
-            <div style="
-                background-color:{style['color']};
-                padding:30px;
-                border-radius:20px;
-                text-align:center;
-                color:white;
-                margin-bottom:25px;
+        st.markdown(f"""
+        <div style="
+            background-color:{style['color']};
+            padding:35px;
+            border-radius:20px;
+            text-align:center;
+            color:white;
+            margin-top:20px;
+            margin-bottom:25px;
+        ">
+
+            <h1>
+                {style['emoji']} {label.upper()}
+            </h1>
+
+            <p style="
+                font-size:20px;
             ">
+                {style['message']}
+            </p>
 
-                <h1>
-                    {style['emoji']} {emotion.upper()}
-                </h1>
-
-                <p style="
-                    font-size:20px;
-                ">
-                    {style['message']}
-                </p>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        </div>
+        """, unsafe_allow_html=True)
 
         # =====================================================
         # METRICS
@@ -441,41 +397,37 @@ if st.button("🔍 Analisis Sekarang"):
 
         if is_sarcasm:
 
-            st.markdown(
-                """
-                <div style="
-                    background-color:#E53935;
-                    padding:18px;
-                    border-radius:12px;
-                    color:white;
-                    text-align:center;
-                    font-size:22px;
-                    font-weight:bold;
-                ">
-                    ⚠️ Sarkasme Terdeteksi
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.markdown("""
+            <div style="
+                background-color:#E53935;
+                padding:18px;
+                border-radius:12px;
+                color:white;
+                text-align:center;
+                font-size:22px;
+                font-weight:bold;
+                margin-top:10px;
+            ">
+                ⚠️ Sarkasme Terdeteksi
+            </div>
+            """, unsafe_allow_html=True)
 
         else:
 
-            st.markdown(
-                """
-                <div style="
-                    background-color:#43A047;
-                    padding:18px;
-                    border-radius:12px;
-                    color:white;
-                    text-align:center;
-                    font-size:22px;
-                    font-weight:bold;
-                ">
-                    ✅ Tidak Mengandung Sarkasme
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.markdown("""
+            <div style="
+                background-color:#43A047;
+                padding:18px;
+                border-radius:12px;
+                color:white;
+                text-align:center;
+                font-size:22px;
+                font-weight:bold;
+                margin-top:10px;
+            ">
+                ✅ Tidak Mengandung Sarkasme
+            </div>
+            """, unsafe_allow_html=True)
 
 # =====================================================
 # FOOTER
