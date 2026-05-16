@@ -1,7 +1,7 @@
-streamlit
-transformers
-torch==2.2.2
+streamlit==1.45.1
+transformers==4.52.4
+torch
+pandas
+scikit-learn
 sentencepiece
-accelerate
 safetensors
-protobuf
