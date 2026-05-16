@@ -1,6 +1,7 @@
 streamlit
 transformers
-torch
+torch==2.2.2
 sentencepiece
 accelerate
 safetensors
+protobuf
