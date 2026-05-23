@@ -266,7 +266,7 @@ with st.sidebar:
 
     <p style="
         color:#94a3b8;
-        font-size:13px;
+        font-size:14px;
     ">
     Dashboard Analisis Emosi & Sarkasme
     </p>
