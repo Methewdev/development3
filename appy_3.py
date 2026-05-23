@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import chardet
+import plotly.express as px
+
 from io import StringIO
 
 # =====================================================
@@ -171,6 +173,10 @@ DATAFRAME
     overflow:hidden;
 
 }
+
+/* =====================================================
+TEXT
+===================================================== */
 
 h1, h2, h3, h4{
     color:white !important;
@@ -347,8 +353,46 @@ if menu == "Dashboard":
             "Jumlah"
         ]
 
-        st.dataframe(
+        # =============================================
+        # BAR CHART
+        # =============================================
+
+        fig = px.bar(
+
             emotion_count,
+
+            x="Emosi",
+
+            y="Jumlah",
+
+            text="Jumlah",
+
+            title="Distribusi Emosi",
+
+            template="plotly_dark"
+
+        )
+
+        fig.update_layout(
+
+            paper_bgcolor="#0b1120",
+
+            plot_bgcolor="#0b1120",
+
+            font_color="white",
+
+            title_font_size=24,
+
+            xaxis_title="Kategori Emosi",
+
+            yaxis_title="Jumlah Data",
+
+            height=500
+
+        )
+
+        st.plotly_chart(
+            fig,
             use_container_width=True
         )
 
@@ -548,17 +592,6 @@ elif menu == "Bulk CSV":
                 )
 
                 # =====================================
-                # HASIL ANALISIS
-                # =====================================
-
-                st.subheader("📋 Hasil Analisis")
-
-                st.dataframe(
-                    result_df,
-                    use_container_width=True
-                )
-
-                # =====================================
                 # DISTRIBUSI EMOSI
                 # =====================================
 
@@ -575,8 +608,57 @@ elif menu == "Bulk CSV":
                     "Jumlah"
                 ]
 
-                st.dataframe(
+                # =====================================
+                # BAR CHART
+                # =====================================
+
+                fig = px.bar(
+
                     emotion_count,
+
+                    x="Emosi",
+
+                    y="Jumlah",
+
+                    text="Jumlah",
+
+                    title="Distribusi Emosi",
+
+                    template="plotly_dark"
+
+                )
+
+                fig.update_layout(
+
+                    paper_bgcolor="#0b1120",
+
+                    plot_bgcolor="#0b1120",
+
+                    font_color="white",
+
+                    title_font_size=24,
+
+                    xaxis_title="Kategori Emosi",
+
+                    yaxis_title="Jumlah Data",
+
+                    height=500
+
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+                # =====================================
+                # HASIL ANALISIS
+                # =====================================
+
+                st.subheader("📋 Hasil Analisis")
+
+                st.dataframe(
+                    result_df,
                     use_container_width=True
                 )
 
@@ -635,8 +717,36 @@ elif menu == "Statistik":
             "Jumlah"
         ]
 
-        st.dataframe(
+        fig = px.bar(
+
             statistik,
+
+            x="Emosi",
+
+            y="Jumlah",
+
+            text="Jumlah",
+
+            title="Statistik Emosi",
+
+            template="plotly_dark"
+
+        )
+
+        fig.update_layout(
+
+            paper_bgcolor="#0b1120",
+
+            plot_bgcolor="#0b1120",
+
+            font_color="white",
+
+            height=500
+
+        )
+
+        st.plotly_chart(
+            fig,
             use_container_width=True
         )
 
