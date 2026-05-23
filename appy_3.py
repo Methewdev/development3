@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-import re
-import matplotlib.pyplot as plt
-from transformers import pipeline
 
 # =====================================================
 # PAGE CONFIG
@@ -21,436 +18,309 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-.main {
-    background-color: #f5f7fa;
+html, body, [class*="css"]{
+    font-family: 'Poppins', sans-serif;
+    background-color:#f4f7fc;
 }
 
-.stButton button {
-    width: 100%;
-    border-radius: 10px;
-    height: 50px;
-    font-size: 18px;
-    font-weight: bold;
+/* MAIN */
+
+.main{
+    background:#f4f7fc;
 }
 
-.block-container {
-    padding-top: 2rem;
+/* HIDE STREAMLIT */
+
+#MainMenu{
+    visibility:hidden;
 }
 
-.metric-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+footer{
+    visibility:hidden;
+}
+
+header{
+    visibility:hidden;
+}
+
+/* SIDEBAR */
+
+[data-testid="stSidebar"]{
+    background:#111827;
+}
+
+[data-testid="stSidebar"] *{
+    color:white;
+}
+
+/* CARD */
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.05);
+    margin-bottom:20px;
+}
+
+.card h3{
+    color:#777;
+    margin-bottom:10px;
+}
+
+.card h1{
+    font-size:38px;
+}
+
+/* RESULT */
+
+.result-box{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.05);
+    margin-bottom:20px;
+}
+
+.result-item{
+    background:#f4f7fc;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:15px;
+}
+
+/* TEXT AREA */
+
+textarea{
+    border-radius:15px !important;
+}
+
+/* BUTTON */
+
+.stButton button{
+    width:100%;
+    height:55px;
+    border:none;
+    border-radius:15px;
+    background:#2563eb;
+    color:white;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.stButton button:hover{
+    background:#1d4ed8;
+    color:white;
+}
+
+/* TABLE */
+
+[data-testid="stDataFrame"]{
+    border-radius:15px;
+    overflow:hidden;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================================
-# TITLE
+# SIDEBAR
 # =====================================================
 
-st.title("📊 Dashboard Analisis Emosi & Sarkasme")
-
-st.caption(
-    "Prototype Analisis Emosi berbasis IndoBERT Transformer"
-)
-
-# =====================================================
-# MODEL
-# =====================================================
-
-MODEL_NAME = "envidevelopment/model3"
-
-# =====================================================
-# LABEL MAPPING
-# =====================================================
-
-label_mapping = {
-    "LABEL_0": "cemas",
-    "LABEL_1": "frustrasi",
-    "LABEL_2": "marah",
-    "LABEL_3": "netral",
-    "LABEL_4": "puas",
-    "LABEL_5": "senang"
-}
-
-# =====================================================
-# EMOTION STYLE
-# =====================================================
-
-emotion_styles = {
-
-    "marah": {
-        "emoji": "😡",
-        "message": "Nasabah mengalami emosi marah"
-    },
-
-    "frustrasi": {
-        "emoji": "😤",
-        "message": "Nasabah menunjukkan frustrasi"
-    },
-
-    "cemas": {
-        "emoji": "😰",
-        "message": "Nasabah merasa cemas"
-    },
-
-    "senang": {
-        "emoji": "😊",
-        "message": "Nasabah merasa senang"
-    },
-
-    "puas": {
-        "emoji": "😌",
-        "message": "Nasabah merasa puas"
-    },
-
-    "netral": {
-        "emoji": "😐",
-        "message": "Nasabah menunjukkan emosi netral"
-    }
-}
-
-# =====================================================
-# LOAD MODEL
-# =====================================================
-
-@st.cache_resource
-def load_model():
-
-    classifier = pipeline(
-        "text-classification",
-        model=MODEL_NAME
-    )
-
-    return classifier
-
-# =====================================================
-# LOAD MODEL
-# =====================================================
-
-with st.spinner("🔄 Loading Model..."):
-
-    try:
-
-        classifier = load_model()
-
-        st.success("✅ Model berhasil dimuat")
-
-    except Exception as e:
-
-        st.error("❌ Gagal memuat model")
-        st.error(str(e))
-        st.stop()
-
-# =====================================================
-# CLEAN TEXT
-# =====================================================
-
-def clean_text(text):
-
-    text = str(text).lower()
-
-    text = re.sub(r"http\S+", "", text)
-    text = re.sub(r"www\S+", "", text)
-    text = re.sub(r"@\w+", "", text)
-
-    text = re.sub(
-        r"[^a-zA-Z0-9\s!?]",
-        " ",
-        text
-    )
-
-    text = re.sub(r"\s+", " ", text).strip()
-
-    return text
-
-# =====================================================
-# DETECT SARCASM
-# =====================================================
-
-def detect_sarcasm(text):
-
-    text = clean_text(text)
-
-    positive_words = [
-        "bagus",
-        "mantap",
-        "keren",
-        "hebat",
-        "cepat"
-    ]
-
-    negative_words = [
-        "gagal",
-        "error",
-        "maintenance",
-        "lemot",
-        "pending",
-        "gangguan"
-    ]
-
-    pos_found = any(word in text for word in positive_words)
-
-    neg_found = any(word in text for word in negative_words)
-
-    return pos_found and neg_found
-
-# =====================================================
-# DETECT SENTIMENT
-# =====================================================
-
-def detect_sentiment(emotion):
-
-    if emotion in ["senang", "puas"]:
-        return "Positif"
-
-    elif emotion in ["marah", "frustrasi", "cemas"]:
-        return "Negatif"
-
-    return "Netral"
-
-# =====================================================
-# ANALYZE FUNCTION
-# =====================================================
-
-def analyze_text(text):
-
-    cleaned = clean_text(text)
-
-    result = classifier(cleaned)
-
-    raw_label = result[0]["label"]
-
-    confidence = result[0]["score"]
-
-    emotion = label_mapping.get(raw_label, "netral")
-
-    sentiment = detect_sentiment(emotion)
-
-    sarcasm = detect_sarcasm(text)
-
-    return {
-        "text": text,
-        "emotion": emotion,
-        "confidence": round(confidence * 100, 2),
-        "sentiment": sentiment,
-        "sarcasm": sarcasm
-    }
-
-# =====================================================
-# MENU
-# =====================================================
+st.sidebar.title("📊 Emotion AI")
 
 menu = st.sidebar.radio(
-    "📌 Pilih Mode",
+    "Menu",
     [
+        "Dashboard",
         "Analisis Satuan",
-        "Analisis Bulk CSV"
+        "Bulk CSV",
+        "Statistik"
     ]
 )
 
 # =====================================================
-# SINGLE ANALYSIS
+# HEADER
 # =====================================================
 
-if menu == "Analisis Satuan":
+st.title("📊 Dashboard Analisis Emosi")
 
-    st.subheader("✍️ Input Ulasan")
+st.caption(
+    "Prototype Analisis Emosi & Sarkasme Nasabah"
+)
+
+# =====================================================
+# DASHBOARD CARDS
+# =====================================================
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+
+    st.markdown("""
+    <div class="card">
+        <h3>Total Data</h3>
+        <h1>1,250</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+
+    st.markdown("""
+    <div class="card">
+        <h3>Positif</h3>
+        <h1>760</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+
+    st.markdown("""
+    <div class="card">
+        <h3>Negatif</h3>
+        <h1>390</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+
+    st.markdown("""
+    <div class="card">
+        <h3>Sarkasme</h3>
+        <h1>100</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =====================================================
+# CONTENT
+# =====================================================
+
+left, right = st.columns([2,1])
+
+# =====================================================
+# LEFT CONTENT
+# =====================================================
+
+with left:
+
+    st.markdown("""
+    <div class="card">
+        <h2>✍️ Analisis Ulasan</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     text = st.text_area(
         "",
-        height=200,
-        placeholder="Contoh: Bagus banget aplikasinya transfer gagal terus"
+        height=220,
+        placeholder="Masukkan ulasan nasabah..."
     )
 
-    if st.button("🔍 Analisis Sekarang"):
+    analyze = st.button("🔍 Analisis Sekarang")
 
-        if text.strip() == "":
+    st.markdown("<br>", unsafe_allow_html=True)
 
-            st.warning("⚠️ Masukkan ulasan terlebih dahulu")
-
-        else:
-
-            with st.spinner("🔄 Sedang menganalisis..."):
-
-                result = analyze_text(text)
-
-            emotion = result["emotion"]
-
-            style = emotion_styles[emotion]
-
-            st.markdown("---")
-
-            st.subheader("📌 Hasil Analisis")
-
-            st.success(
-                f"{style['emoji']} Emosi : {emotion.upper()}"
-            )
-
-            st.write(style["message"])
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric(
-                    "🎯 Confidence",
-                    f"{result['confidence']}%"
-                )
-
-            with col2:
-                st.metric(
-                    "💬 Sentimen",
-                    result["sentiment"]
-                )
-
-            with col3:
-                st.metric(
-                    "🧠 Sarkasme",
-                    "Ya" if result["sarcasm"] else "Tidak"
-                )
-
-# =====================================================
-# BULK ANALYSIS
-# =====================================================
-
-elif menu == "Analisis Bulk CSV":
-
-    st.subheader("📂 Upload CSV")
+    st.markdown("""
+    <div class="card">
+        <h2>📂 Upload CSV</h2>
+        <p>Upload file CSV untuk analisis bulk</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
-        "Upload file CSV",
+        "",
         type=["csv"]
     )
 
-    st.info(
-        "CSV harus memiliki kolom bernama: text"
-    )
+# =====================================================
+# RIGHT CONTENT
+# =====================================================
 
-    if uploaded_file is not None:
+with right:
 
-        df = pd.read_csv(uploaded_file)
+    st.markdown("""
+    <div class="result-box">
+        <h2>📌 Hasil Analisis</h2>
 
-        st.subheader("📄 Preview Data")
+        <div class="result-item">
+            <h3>😡 Emosi</h3>
+            <p>MARAH</p>
+        </div>
 
-        st.dataframe(df.head())
+        <div class="result-item">
+            <h3>🎯 Confidence</h3>
+            <p>99.86%</p>
+        </div>
 
-        if st.button("🚀 Proses Bulk Analisis"):
+        <div class="result-item">
+            <h3>💬 Sentimen</h3>
+            <p>Negatif</p>
+        </div>
 
-            results = []
+        <div class="result-item">
+            <h3>🧠 Sarkasme</h3>
+            <p>Tidak Terdeteksi</p>
+        </div>
 
-            progress = st.progress(0)
+    </div>
+    """, unsafe_allow_html=True)
 
-            total = len(df)
+# =====================================================
+# TABLE RESULT
+# =====================================================
 
-            for i, row in enumerate(df.itertuples()):
+st.markdown("<br>", unsafe_allow_html=True)
 
-                text = str(row.text)
+st.markdown("""
+<div class="card">
+    <h2>📋 Hasil Analisis Bulk</h2>
+</div>
+""", unsafe_allow_html=True)
 
-                result = analyze_text(text)
+# =====================================================
+# DUMMY DATA
+# =====================================================
 
-                results.append(result)
+data = {
+    "No": [1,2,3],
+    "Ulasan": [
+        "Aplikasi bagus tapi sering error",
+        "Transfer cepat dan mudah",
+        "Maintenance terus sangat mengganggu"
+    ],
+    "Emosi": [
+        "Frustrasi",
+        "Senang",
+        "Marah"
+    ],
+    "Confidence": [
+        "98.22%",
+        "99.01%",
+        "97.65%"
+    ],
+    "Sentimen": [
+        "Negatif",
+        "Positif",
+        "Negatif"
+    ],
+    "Sarkasme": [
+        "Ya",
+        "Tidak",
+        "Tidak"
+    ]
+}
 
-                progress.progress((i + 1) / total)
+df = pd.DataFrame(data)
 
-            result_df = pd.DataFrame(results)
-
-            st.success("✅ Analisis selesai")
-
-            # =====================================================
-            # DASHBOARD METRICS
-            # =====================================================
-
-            st.subheader("📊 Dashboard Statistik")
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-                st.metric(
-                    "Total Data",
-                    len(result_df)
-                )
-
-            with col2:
-                st.metric(
-                    "Positif",
-                    len(
-                        result_df[
-                            result_df["sentiment"] == "Positif"
-                        ]
-                    )
-                )
-
-            with col3:
-                st.metric(
-                    "Negatif",
-                    len(
-                        result_df[
-                            result_df["sentiment"] == "Negatif"
-                        ]
-                    )
-                )
-
-            with col4:
-                st.metric(
-                    "Sarkasme",
-                    len(
-                        result_df[
-                            result_df["sarcasm"] == True
-                        ]
-                    )
-                )
-
-            # =====================================================
-            # CHART
-            # =====================================================
-
-            st.subheader("📈 Distribusi Emosi")
-
-            emotion_counts = result_df["emotion"].value_counts()
-
-            fig, ax = plt.subplots(figsize=(8, 5))
-
-            emotion_counts.plot(
-                kind="bar",
-                ax=ax
-            )
-
-            plt.xticks(rotation=0)
-
-            st.pyplot(fig)
-
-            # =====================================================
-            # TABLE RESULT
-            # =====================================================
-
-            st.subheader("📋 Hasil Lengkap")
-
-            st.dataframe(
-                result_df,
-                use_container_width=True
-            )
-
-            # =====================================================
-            # DOWNLOAD
-            # =====================================================
-
-            csv = result_df.to_csv(index=False)
-
-            st.download_button(
-                label="⬇️ Download Hasil CSV",
-                data=csv,
-                file_name="hasil_analisis.csv",
-                mime="text/csv"
-            )
+st.dataframe(
+    df,
+    use_container_width=True
+)
 
 # =====================================================
 # FOOTER
 # =====================================================
 
-st.markdown("---")
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 st.caption(
     "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking"
