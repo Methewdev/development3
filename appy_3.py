@@ -26,7 +26,7 @@ GLOBAL
 html, body, [class*="css"]{
     background-color:#050816;
     color:white;
-    font-family: 'Segoe UI', sans-serif;
+    font-family:'Segoe UI', sans-serif;
 }
 
 /* Hide Streamlit */
@@ -104,7 +104,7 @@ METRIC CARD
 
     color:#cbd5e1;
 
-    font-size:24px;
+    font-size:22px;
 
     margin-bottom:20px;
 
@@ -351,7 +351,7 @@ with col1:
         </div>
 
         <div class="metric-value">
-            1,250
+            1250
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -404,65 +404,12 @@ with col4:
 
 if menu == "Dashboard":
 
-    left, right = st.columns([2,1])
-
-    # =================================================
-    # LEFT
-    # =================================================
-
-    with left:
-
-        st.markdown("""
-        <div class="content-box">
-            <h2>📈 Distribusi Emosi</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-        chart_data = pd.DataFrame({
-
-            "Emosi":[
-                "Senang",
-                "Puas",
-                "Netral",
-                "Marah",
-                "Frustrasi",
-                "Cemas"
-            ],
-
-            "Jumlah":[
-                480,
-                280,
-                200,
-                150,
-                90,
-                50
-            ]
-
-        })
-
-        st.bar_chart(
-            chart_data.set_index("Emosi")
-        )
-
-    # =================================================
-    # RIGHT
-    # =================================================
-
-    with right:
-
-        st.markdown("""
-        <div class="content-box">
-            <h2>⚡ Quick Action</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.button("✍️ Analisis Satuan")
-
-        st.button("📂 Upload CSV")
-
-        st.button("📈 Lihat Statistik")
-
-        st.button("⬇️ Export Laporan")
+    st.markdown("""
+    <div class="content-box">
+        <h2>📊 Dashboard Utama</h2>
+        <p>Upload data terlebih dahulu untuk melihat visualisasi</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # =====================================================
 # ANALISIS SATUAN
@@ -471,10 +418,6 @@ if menu == "Dashboard":
 elif menu == "Analisis Satuan":
 
     left, right = st.columns([2,1])
-
-    # =================================================
-    # INPUT
-    # =================================================
 
     with left:
 
@@ -493,10 +436,6 @@ elif menu == "Analisis Satuan":
         analyze = st.button(
             "🔍 Analisis Sekarang"
         )
-
-    # =================================================
-    # RESULT
-    # =================================================
 
     with right:
 
@@ -530,11 +469,11 @@ elif menu == "Analisis Satuan":
         st.markdown(f"""
         <div class="result-box">
             <div class="result-title">
-                🎯 Confidence
+                💬 Sentimen
             </div>
 
             <div class="result-value">
-                {confidence}
+                {sentiment}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -542,11 +481,11 @@ elif menu == "Analisis Satuan":
         st.markdown(f"""
         <div class="result-box">
             <div class="result-title">
-                💬 Sentimen
+                🎯 Confidence
             </div>
 
             <div class="result-value">
-                {sentiment}
+                {confidence}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -572,6 +511,7 @@ elif menu == "Bulk CSV":
     st.markdown("""
     <div class="content-box">
         <h2>📂 Upload CSV</h2>
+        <p>Upload file CSV untuk analisis massal</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -580,7 +520,7 @@ elif menu == "Bulk CSV":
         type=["csv"]
     )
 
-    if uploaded_file:
+    if uploaded_file is not None:
 
         df = pd.read_csv(uploaded_file)
 
@@ -591,6 +531,87 @@ elif menu == "Bulk CSV":
             use_container_width=True
         )
 
+        if st.button("🚀 Mulai Analisis"):
+
+            results = []
+
+            for i in range(len(df)):
+
+                text = str(df.iloc[i,0])
+
+                emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
+
+                results.append({
+
+                    "Text": text,
+                    "Emosi": emotion,
+                    "Sentimen": sentiment,
+                    "Confidence": confidence,
+                    "Sarkasme": sarcasm
+
+                })
+
+            result_df = pd.DataFrame(results)
+
+            st.success("✅ Analisis selesai")
+
+            # =============================================
+            # TABEL HASIL
+            # =============================================
+
+            st.markdown("""
+            <div class="content-box">
+                <h2>📋 Hasil Analisis</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.dataframe(
+                result_df,
+                use_container_width=True
+            )
+
+            # =============================================
+            # DISTRIBUSI EMOSI
+            # =============================================
+
+            st.markdown("""
+            <div class="content-box">
+                <h2>📈 Distribusi Emosi</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+            emotion_count = result_df["Emosi"].value_counts()
+
+            emotion_chart = pd.DataFrame({
+
+                "Emosi": emotion_count.index,
+                "Jumlah": emotion_count.values
+
+            })
+
+            st.dataframe(
+                emotion_chart,
+                use_container_width=True
+            )
+
+            # =============================================
+            # DOWNLOAD CSV
+            # =============================================
+
+            csv = result_df.to_csv(index=False)
+
+            st.download_button(
+
+                label="⬇️ Download Hasil CSV",
+
+                data=csv,
+
+                file_name="hasil_analisis.csv",
+
+                mime="text/csv"
+
+            )
+
 # =====================================================
 # STATISTIK
 # =====================================================
@@ -600,44 +621,15 @@ elif menu == "Statistik":
     st.markdown("""
     <div class="content-box">
         <h2>📈 Statistik Analisis</h2>
+        <p>Statistik akan muncul setelah proses bulk CSV</p>
     </div>
     """, unsafe_allow_html=True)
-
-    stats_data = pd.DataFrame({
-
-        "Hari":[
-            "Sen",
-            "Sel",
-            "Rab",
-            "Kam",
-            "Jum"
-        ],
-
-        "Positif":[
-            120,
-            150,
-            130,
-            170,
-            200
-        ]
-
-    })
-
-    st.line_chart(
-        stats_data.set_index("Hari")
-    )
 
 # =====================================================
 # RIWAYAT
 # =====================================================
 
 elif menu == "Riwayat":
-
-    st.markdown("""
-    <div class="content-box">
-        <h2>📜 Riwayat Analisis</h2>
-    </div>
-    """, unsafe_allow_html=True)
 
     history = pd.DataFrame({
 
@@ -666,6 +658,12 @@ elif menu == "Riwayat":
         ]
 
     })
+
+    st.markdown("""
+    <div class="content-box">
+        <h2>📜 Riwayat Analisis</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.dataframe(
         history,
