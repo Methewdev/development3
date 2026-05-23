@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import chardet
+from io import StringIO
 
 # =====================================================
 # PAGE CONFIG
@@ -90,21 +92,12 @@ CARD
 }
 
 /* =====================================================
-TEXT
-===================================================== */
-
-h1, h2, h3, h4{
-    color:white !important;
-}
-
-/* =====================================================
 BUTTON
 ===================================================== */
 
 .stButton button{
 
     width:100%;
-
     height:55px;
 
     border:none;
@@ -177,6 +170,10 @@ DATAFRAME
 
     overflow:hidden;
 
+}
+
+h1, h2, h3, h4{
+    color:white !important;
 }
 
 </style>
@@ -413,9 +410,6 @@ elif menu == "Analisis Satuan":
 
 elif menu == "Bulk CSV":
 
-    import chardet
-    from io import StringIO
-
     st.subheader("📂 Upload CSV")
 
     uploaded_file = st.file_uploader(
@@ -428,7 +422,7 @@ elif menu == "Bulk CSV":
         try:
 
             # =========================================
-            # READ RAW BINARY
+            # READ RAW FILE
             # =========================================
 
             raw_data = uploaded_file.read()
@@ -441,7 +435,7 @@ elif menu == "Bulk CSV":
 
             encoding = detected["encoding"]
 
-            st.info(f"Encoding terdeteksi: {encoding}")
+            st.info(f"Encoding terdeteksi : {encoding}")
 
             # =========================================
             # DECODE FILE
@@ -453,7 +447,7 @@ elif menu == "Bulk CSV":
             )
 
             # =========================================
-            # TRY SEPARATOR
+            # READ CSV
             # =========================================
 
             try:
@@ -471,7 +465,7 @@ elif menu == "Bulk CSV":
                 )
 
             # =========================================
-            # HAPUS KOLOM KOSONG
+            # REMOVE EMPTY COLUMN
             # =========================================
 
             df = df.dropna(
@@ -499,110 +493,13 @@ elif menu == "Bulk CSV":
             )
 
             # =========================================
-            # PILIH KOLOM
+            # PILIH KOLOM ULASAN
             # =========================================
 
             selected_column = st.selectbox(
                 "Pilih Kolom Ulasan",
                 df.columns
             )
-
-            # =========================================
-            # ANALISIS
-            # =========================================
-
-            if st.button("🚀 Mulai Analisis"):
-
-                results = []
-
-                progress = st.progress(0)
-
-                total = len(df)
-
-                for i in range(total):
-
-                    text = str(
-                        df[selected_column].iloc[i]
-                    )
-
-                    emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
-
-                    results.append({
-
-                        "Text": text,
-                        "Emosi": emotion,
-                        "Sentimen": sentiment,
-                        "Confidence": confidence,
-                        "Sarkasme": sarcasm
-
-                    })
-
-                    progress.progress(
-                        (i + 1) / total
-                    )
-
-                result_df = pd.DataFrame(results)
-
-                st.session_state.result_df = result_df
-
-                st.success(
-                    "✅ Analisis selesai"
-                )
-
-                st.subheader("📋 Hasil Analisis")
-
-                st.dataframe(
-                    result_df,
-                    use_container_width=True
-                )
-
-                # =====================================
-                # DISTRIBUSI EMOSI
-                # =====================================
-
-                st.subheader("📈 Distribusi Emosi")
-
-                emotion_count = (
-                    result_df["Emosi"]
-                    .value_counts()
-                    .reset_index()
-                )
-
-                emotion_count.columns = [
-                    "Emosi",
-                    "Jumlah"
-                ]
-
-                st.dataframe(
-                    emotion_count,
-                    use_container_width=True
-                )
-
-                # =====================================
-                # DOWNLOAD CSV
-                # =====================================
-
-                csv = result_df.to_csv(index=False)
-
-                st.download_button(
-
-                    label="⬇️ Download Hasil CSV",
-
-                    data=csv,
-
-                    file_name="hasil_analisis.csv",
-
-                    mime="text/csv"
-
-                )
-
-        except Exception as e:
-
-            st.error(
-                "❌ Gagal membaca file CSV"
-            )
-
-            st.code(str(e))
 
             # =========================================
             # ANALISIS
