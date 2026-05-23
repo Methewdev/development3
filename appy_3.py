@@ -67,22 +67,6 @@ SIDEBAR
 }
 
 /* =====================================================
-TITLE
-===================================================== */
-
-.main-title{
-    font-size:42px;
-    font-weight:700;
-    color:white;
-}
-
-.sub-title{
-    color:#94a3b8;
-    font-size:18px;
-    margin-bottom:30px;
-}
-
-/* =====================================================
 CARD
 ===================================================== */
 
@@ -235,10 +219,6 @@ def analyze_emotion(text):
 
 st.sidebar.markdown("# 🧠 Emotion AI")
 
-st.sidebar.caption(
-    "Analisis Emosi & Sarkasme"
-)
-
 menu = st.sidebar.radio(
     "MENU",
     [
@@ -254,18 +234,14 @@ menu = st.sidebar.radio(
 # HEADER
 # =====================================================
 
-st.markdown(
-    '<div class="main-title">Dashboard Analisis Emosi</div>',
-    unsafe_allow_html=True
-)
+st.title("📊 Dashboard Analisis Emosi")
 
-st.markdown(
-    '<div class="sub-title">Prototype Analisis Emosi & Sarkasme berbasis AI</div>',
-    unsafe_allow_html=True
+st.caption(
+    "Prototype Analisis Emosi & Sarkasme berbasis AI"
 )
 
 # =====================================================
-# METRIC CARDS
+# METRIC DATA
 # =====================================================
 
 total_data = 0
@@ -296,6 +272,10 @@ if st.session_state.result_df is not None:
             df_metric["Sarkasme"] == "Ya"
         ]
     )
+
+# =====================================================
+# METRIC CARDS
+# =====================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -445,107 +425,184 @@ elif menu == "Bulk CSV":
         try:
 
             # =========================================
-            # READ CSV UTF-8
+            # RESET POINTER FILE
+            # =========================================
+
+            uploaded_file.seek(0)
+
+            # =========================================
+            # TRY UTF-8 COMMA
             # =========================================
 
             try:
 
                 df = pd.read_csv(
                     uploaded_file,
-                    encoding="utf-8"
+                    encoding="utf-8",
+                    sep=","
                 )
 
             except:
+
+                uploaded_file.seek(0)
+
+                # =====================================
+                # TRY UTF-8 SEMICOLON
+                # =====================================
 
                 try:
 
                     df = pd.read_csv(
                         uploaded_file,
-                        encoding="latin1"
+                        encoding="utf-8",
+                        sep=";"
                     )
 
                 except:
 
-                    df = pd.read_csv(
-                        uploaded_file,
-                        encoding="cp1252"
-                    )
+                    uploaded_file.seek(0)
 
-            st.success(
-                "✅ File berhasil diupload"
-            )
+                    # =================================
+                    # TRY LATIN1 COMMA
+                    # =================================
 
-            st.dataframe(
-                df,
-                use_container_width=True
-            )
+                    try:
+
+                        df = pd.read_csv(
+                            uploaded_file,
+                            encoding="latin1",
+                            sep=","
+                        )
+
+                    except:
+
+                        uploaded_file.seek(0)
+
+                        # =============================
+                        # TRY LATIN1 SEMICOLON
+                        # =============================
+
+                        df = pd.read_csv(
+                            uploaded_file,
+                            encoding="latin1",
+                            sep=";"
+                        )
 
             # =========================================
-            # MULAI ANALISIS
+            # VALIDASI KOLOM
             # =========================================
 
-            if st.button("🚀 Mulai Analisis"):
+            if len(df.columns) == 0:
 
-                results = []
-
-                progress = st.progress(0)
-
-                total = len(df)
-
-                for i in range(total):
-
-                    text = str(df.iloc[i,0])
-
-                    emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
-
-                    results.append({
-
-                        "Text": text,
-                        "Emosi": emotion,
-                        "Sentimen": sentiment,
-                        "Confidence": confidence,
-                        "Sarkasme": sarcasm
-
-                    })
-
-                    progress.progress(
-                        (i + 1) / total
-                    )
-
-                result_df = pd.DataFrame(results)
-
-                # =====================================
-                # SAVE SESSION
-                # =====================================
-
-                st.session_state.result_df = result_df
-
-                st.success(
-                    "✅ Analisis selesai"
+                st.error(
+                    "❌ File CSV tidak memiliki kolom"
                 )
 
+            else:
+
+                st.success(
+                    "✅ File berhasil diupload"
+                )
+
+                st.write("### Preview Dataset")
+
                 st.dataframe(
-                    result_df,
+                    df.head(),
                     use_container_width=True
                 )
 
-                # =====================================
-                # DOWNLOAD CSV
-                # =====================================
-
-                csv = result_df.to_csv(index=False)
-
-                st.download_button(
-
-                    label="⬇️ Download Hasil CSV",
-
-                    data=csv,
-
-                    file_name="hasil_analisis.csv",
-
-                    mime="text/csv"
-
+                st.write(
+                    f"Jumlah Data : {len(df)}"
                 )
+
+                # =====================================
+                # ANALISIS
+                # =====================================
+
+                if st.button("🚀 Mulai Analisis"):
+
+                    results = []
+
+                    progress = st.progress(0)
+
+                    total = len(df)
+
+                    for i in range(total):
+
+                        text = str(df.iloc[i,0])
+
+                        emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
+
+                        results.append({
+
+                            "Text": text,
+                            "Emosi": emotion,
+                            "Sentimen": sentiment,
+                            "Confidence": confidence,
+                            "Sarkasme": sarcasm
+
+                        })
+
+                        progress.progress(
+                            (i + 1) / total
+                        )
+
+                    result_df = pd.DataFrame(results)
+
+                    # =================================
+                    # SAVE SESSION
+                    # =================================
+
+                    st.session_state.result_df = result_df
+
+                    st.success(
+                        "✅ Analisis selesai"
+                    )
+
+                    st.dataframe(
+                        result_df,
+                        use_container_width=True
+                    )
+
+                    # =================================
+                    # DISTRIBUSI EMOSI
+                    # =================================
+
+                    st.subheader("📈 Distribusi Emosi")
+
+                    emotion_count = (
+                        result_df["Emosi"]
+                        .value_counts()
+                        .reset_index()
+                    )
+
+                    emotion_count.columns = [
+                        "Emosi",
+                        "Jumlah"
+                    ]
+
+                    st.dataframe(
+                        emotion_count,
+                        use_container_width=True
+                    )
+
+                    # =================================
+                    # DOWNLOAD CSV
+                    # =================================
+
+                    csv = result_df.to_csv(index=False)
+
+                    st.download_button(
+
+                        label="⬇️ Download Hasil CSV",
+
+                        data=csv,
+
+                        file_name="hasil_analisis.csv",
+
+                        mime="text/csv"
+
+                    )
 
         except Exception as e:
 
@@ -553,7 +610,7 @@ elif menu == "Bulk CSV":
                 "❌ Gagal membaca file CSV"
             )
 
-            st.error(str(e))
+            st.code(str(e))
 
 # =====================================================
 # STATISTIK
