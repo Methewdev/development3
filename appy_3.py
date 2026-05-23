@@ -1,6 +1,6 @@
 import streamlit as st
 import re
-from transformers import pipeline
+from transformers import pipelinea
 
 # =====================================================
 # PAGE CONFIG
