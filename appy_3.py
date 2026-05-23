@@ -163,19 +163,19 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric(
         "📊 Total Analisis",
-        "1,250"
+        ""
     )
 
 with col2:
     st.metric(
         "😊 Positif",
-        "760"
+        ""
     )
 
 with col3:
     st.metric(
         "😡 Negatif",
-        "390"
+        ""
     )
 
 with col4:
