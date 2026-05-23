@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # =====================================================
 # PAGE CONFIG
 # =====================================================
 
 st.set_page_config(
-    page_title="Dashboard Analisis Emosi",
-    page_icon="📊",
-    layout="wide"
+    page_title="Emotion AI Dashboard",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # =====================================================
@@ -18,106 +20,197 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+/* =====================================================
+GLOBAL
+===================================================== */
+
 html, body, [class*="css"]{
-    font-family: 'Poppins', sans-serif;
-    background-color:#f4f7fc;
+    font-family: 'Segoe UI', sans-serif;
+    background: #050816;
+    color: white;
 }
 
-/* MAIN */
+/* Hide Streamlit */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
 
-.main{
-    background:#f4f7fc;
-}
-
-/* HIDE STREAMLIT */
-
-#MainMenu{
-    visibility:hidden;
-}
-
-footer{
-    visibility:hidden;
-}
-
-header{
-    visibility:hidden;
-}
-
-/* SIDEBAR */
+/* =====================================================
+SIDEBAR
+===================================================== */
 
 [data-testid="stSidebar"]{
-    background:#111827;
+    background: linear-gradient(
+        180deg,
+        #081028 0%,
+        #09142d 100%
+    );
+    border-right: 1px solid rgba(255,255,255,0.1);
 }
 
 [data-testid="stSidebar"] *{
     color:white;
 }
 
-/* CARD */
+/* =====================================================
+TITLE
+===================================================== */
 
-.card{
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.05);
-    margin-bottom:20px;
+.main-title{
+    font-size:38px;
+    font-weight:700;
+    color:white;
+    margin-bottom:5px;
 }
 
-.card h3{
-    color:#777;
+.sub-title{
+    color:#9ca3af;
+    margin-bottom:30px;
+}
+
+/* =====================================================
+CARDS
+===================================================== */
+
+.card{
+    background: linear-gradient(
+        145deg,
+        rgba(17,24,39,0.95),
+        rgba(30,41,59,0.9)
+    );
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    padding:25px;
+    border-radius:24px;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.4);
+
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card-title{
+    color:#9ca3af;
+    font-size:16px;
     margin-bottom:10px;
 }
 
-.card h1{
-    font-size:38px;
+.card-value{
+    font-size:42px;
+    font-weight:bold;
+    color:white;
 }
 
-/* RESULT */
+/* =====================================================
+CONTENT BOX
+===================================================== */
 
-.result-box{
-    background:white;
-    padding:20px;
-    border-radius:20px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.05);
-    margin-bottom:20px;
+.content-box{
+    background: linear-gradient(
+        145deg,
+        rgba(17,24,39,0.95),
+        rgba(30,41,59,0.9)
+    );
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    padding:25px;
+    border-radius:24px;
+
+    margin-top:20px;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.3);
 }
+
+/* =====================================================
+RESULT ITEM
+===================================================== */
 
 .result-item{
-    background:#f4f7fc;
-    padding:15px;
-    border-radius:15px;
+    background:#111827;
+    padding:18px;
+    border-radius:18px;
     margin-bottom:15px;
+    border:1px solid rgba(255,255,255,0.05);
 }
 
-/* TEXT AREA */
+/* =====================================================
+TEXT AREA
+===================================================== */
 
 textarea{
-    border-radius:15px !important;
+    background:#0f172a !important;
+    color:white !important;
+    border-radius:20px !important;
+    border:1px solid rgba(255,255,255,0.1) !important;
 }
 
-/* BUTTON */
+/* =====================================================
+BUTTON
+===================================================== */
 
 .stButton button{
+
     width:100%;
     height:55px;
+
     border:none;
-    border-radius:15px;
-    background:#2563eb;
+
+    border-radius:18px;
+
+    background: linear-gradient(
+        90deg,
+        #2563eb,
+        #3b82f6
+    );
+
     color:white;
+
     font-size:18px;
-    font-weight:bold;
+    font-weight:600;
+
+    transition:0.3s;
 }
 
 .stButton button:hover{
-    background:#1d4ed8;
+
+    transform:scale(1.02);
+
+    background: linear-gradient(
+        90deg,
+        #1d4ed8,
+        #2563eb
+    );
+
     color:white;
 }
 
-/* TABLE */
+/* =====================================================
+DATAFRAME
+===================================================== */
 
 [data-testid="stDataFrame"]{
-    border-radius:15px;
+    border-radius:20px;
     overflow:hidden;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+/* =====================================================
+UPLOAD
+===================================================== */
+
+.upload-box{
+    border:2px dashed rgba(255,255,255,0.2);
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    background:#0f172a;
 }
 
 </style>
@@ -127,15 +220,17 @@ textarea{
 # SIDEBAR
 # =====================================================
 
-st.sidebar.title("📊 Emotion AI")
+st.sidebar.markdown("# 🧠 Emotion AI")
+st.sidebar.caption("Analisis Emosi & Sarkasme")
 
 menu = st.sidebar.radio(
-    "Menu",
+    "MENU",
     [
-        "Dashboard",
-        "Analisis Satuan",
-        "Bulk CSV",
-        "Statistik"
+        "🏠 Dashboard",
+        "✍️ Analisis Satuan",
+        "📂 Bulk CSV",
+        "📈 Statistik",
+        "📜 Riwayat"
     ]
 )
 
@@ -143,178 +238,292 @@ menu = st.sidebar.radio(
 # HEADER
 # =====================================================
 
-st.title("📊 Dashboard Analisis Emosi")
+st.markdown("""
+<div class="main-title">
+Dashboard Analisis Emosi
+</div>
 
-st.caption(
-    "Prototype Analisis Emosi & Sarkasme Nasabah"
-)
+<div class="sub-title">
+Prototype Analisis Emosi & Sarkasme berbasis Transformer
+</div>
+""", unsafe_allow_html=True)
 
 # =====================================================
-# DASHBOARD CARDS
+# METRIC CARDS
 # =====================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-
     st.markdown("""
     <div class="card">
-        <h3>Total Data</h3>
-        <h1>1,250</h1>
+        <div class="card-title">📊 Total Analisis</div>
+        <div class="card-value">1,250</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
-
     st.markdown("""
     <div class="card">
-        <h3>Positif</h3>
-        <h1>760</h1>
+        <div class="card-title">😊 Positif</div>
+        <div class="card-value">760</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
-
     st.markdown("""
     <div class="card">
-        <h3>Negatif</h3>
-        <h1>390</h1>
+        <div class="card-title">😡 Negatif</div>
+        <div class="card-value">390</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
-
     st.markdown("""
     <div class="card">
-        <h3>Sarkasme</h3>
-        <h1>100</h1>
+        <div class="card-title">🧠 Sarkasme</div>
+        <div class="card-value">100</div>
     </div>
     """, unsafe_allow_html=True)
 
 # =====================================================
-# CONTENT
+# MENU PAGE
 # =====================================================
 
-left, right = st.columns([2,1])
-
 # =====================================================
-# LEFT CONTENT
+# DASHBOARD
 # =====================================================
 
-with left:
+if menu == "🏠 Dashboard":
+
+    left, right = st.columns([2,1])
+
+    with left:
+
+        st.markdown("""
+        <div class="content-box">
+            <h2>📈 Distribusi Emosi</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        chart_data = pd.DataFrame({
+            "Emosi": [
+                "Senang",
+                "Puas",
+                "Netral",
+                "Marah",
+                "Frustrasi",
+                "Cemas"
+            ],
+            "Jumlah": [
+                480,
+                280,
+                200,
+                150,
+                90,
+                50
+            ]
+        })
+
+        fig = px.pie(
+            chart_data,
+            names='Emosi',
+            values='Jumlah',
+            hole=0.5
+        )
+
+        fig.update_layout(
+            paper_bgcolor="#111827",
+            plot_bgcolor="#111827",
+            font_color="white"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    with right:
+
+        st.markdown("""
+        <div class="content-box">
+            <h2>⚡ Quick Action</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.button("✍️ Analisis Satuan")
+        st.button("📂 Upload CSV")
+        st.button("📈 Lihat Statistik")
+        st.button("⬇️ Export Laporan")
+
+# =====================================================
+# ANALISIS SATUAN
+# =====================================================
+
+elif menu == "✍️ Analisis Satuan":
+
+    left, right = st.columns([2,1])
+
+    with left:
+
+        st.markdown("""
+        <div class="content-box">
+            <h2>✍️ Input Ulasan</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        text = st.text_area(
+            "",
+            height=250,
+            placeholder="Masukkan ulasan nasabah..."
+        )
+
+        analyze = st.button(
+            "🔍 Analisis Sekarang"
+        )
+
+    with right:
+
+        st.markdown("""
+        <div class="content-box">
+            <h2>📌 Hasil Analisis</h2>
+
+            <div class="result-item">
+                <h3>😡 Emosi</h3>
+                <p>MARAH</p>
+            </div>
+
+            <div class="result-item">
+                <h3>🎯 Confidence</h3>
+                <p>99.86%</p>
+            </div>
+
+            <div class="result-item">
+                <h3>💬 Sentimen</h3>
+                <p>Negatif</p>
+            </div>
+
+            <div class="result-item">
+                <h3>🧠 Sarkasme</h3>
+                <p>Tidak Terdeteksi</p>
+            </div>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+# =====================================================
+# BULK CSV
+# =====================================================
+
+elif menu == "📂 Bulk CSV":
 
     st.markdown("""
-    <div class="card">
-        <h2>✍️ Analisis Ulasan</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    text = st.text_area(
-        "",
-        height=220,
-        placeholder="Masukkan ulasan nasabah..."
-    )
-
-    analyze = st.button("🔍 Analisis Sekarang")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="card">
+    <div class="content-box">
         <h2>📂 Upload CSV</h2>
-        <p>Upload file CSV untuk analisis bulk</p>
+        <p>Upload file CSV untuk analisis massal</p>
     </div>
     """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
-        "",
+        "Upload CSV",
         type=["csv"]
     )
 
+    if uploaded_file:
+
+        df = pd.read_csv(uploaded_file)
+
+        st.success("✅ File berhasil diupload")
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+        if st.button("🚀 Mulai Analisis"):
+
+            st.success(
+                "✅ Analisis berhasil dilakukan"
+            )
+
 # =====================================================
-# RIGHT CONTENT
+# STATISTIK
 # =====================================================
 
-with right:
+elif menu == "📈 Statistik":
 
     st.markdown("""
-    <div class="result-box">
-        <h2>📌 Hasil Analisis</h2>
-
-        <div class="result-item">
-            <h3>😡 Emosi</h3>
-            <p>MARAH</p>
-        </div>
-
-        <div class="result-item">
-            <h3>🎯 Confidence</h3>
-            <p>99.86%</p>
-        </div>
-
-        <div class="result-item">
-            <h3>💬 Sentimen</h3>
-            <p>Negatif</p>
-        </div>
-
-        <div class="result-item">
-            <h3>🧠 Sarkasme</h3>
-            <p>Tidak Terdeteksi</p>
-        </div>
-
+    <div class="content-box">
+        <h2>📈 Statistik Analisis</h2>
     </div>
     """, unsafe_allow_html=True)
 
+    stats_data = pd.DataFrame({
+        "Hari":[
+            "Sen",
+            "Sel",
+            "Rab",
+            "Kam",
+            "Jum"
+        ],
+        "Positif":[
+            120,
+            150,
+            130,
+            170,
+            200
+        ]
+    })
+
+    fig = px.line(
+        stats_data,
+        x="Hari",
+        y="Positif",
+        markers=True
+    )
+
+    fig.update_layout(
+        paper_bgcolor="#111827",
+        plot_bgcolor="#111827",
+        font_color="white"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
 # =====================================================
-# TABLE RESULT
+# RIWAYAT
 # =====================================================
 
-st.markdown("<br>", unsafe_allow_html=True)
+elif menu == "📜 Riwayat":
 
-st.markdown("""
-<div class="card">
-    <h2>📋 Hasil Analisis Bulk</h2>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="content-box">
+        <h2>📜 Riwayat Analisis</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
-# =====================================================
-# DUMMY DATA
-# =====================================================
+    history = pd.DataFrame({
+        "Tanggal":[
+            "31 Mei 2024",
+            "30 Mei 2024"
+        ],
+        "Ulasan":[
+            "Aplikasi bagus",
+            "Transfer gagal terus"
+        ],
+        "Emosi":[
+            "Senang",
+            "Marah"
+        ]
+    })
 
-data = {
-    "No": [1,2,3],
-    "Ulasan": [
-        "Aplikasi bagus tapi sering error",
-        "Transfer cepat dan mudah",
-        "Maintenance terus sangat mengganggu"
-    ],
-    "Emosi": [
-        "Frustrasi",
-        "Senang",
-        "Marah"
-    ],
-    "Confidence": [
-        "98.22%",
-        "99.01%",
-        "97.65%"
-    ],
-    "Sentimen": [
-        "Negatif",
-        "Positif",
-        "Negatif"
-    ],
-    "Sarkasme": [
-        "Ya",
-        "Tidak",
-        "Tidak"
-    ]
-}
-
-df = pd.DataFrame(data)
-
-st.dataframe(
-    df,
-    use_container_width=True
-)
+    st.dataframe(
+        history,
+        use_container_width=True
+    )
 
 # =====================================================
 # FOOTER
@@ -323,5 +532,5 @@ st.dataframe(
 st.markdown("<br><br>", unsafe_allow_html=True)
 
 st.caption(
-    "Prototype Analisis Emosi, Sentimen & Sarkasme Mobile Banking"
+    "© 2026 Emotion AI Dashboard"
 )
