@@ -332,6 +332,7 @@ st.caption(
 total_data = 0
 positif = 0
 negatif = 0
+netral = 0
 sarkasme = 0
 
 if st.session_state.result_df is not None:
@@ -352,6 +353,12 @@ if st.session_state.result_df is not None:
         ]
     )
 
+    netral = len(
+        df_metric[
+            df_metric["Sentimen"] == "Netral"
+        ]
+    )
+
     sarkasme = len(
         df_metric[
             df_metric["Sarkasme"] == "Ya"
@@ -362,7 +369,7 @@ if st.session_state.result_df is not None:
 # METRIC CARDS
 # =====================================================
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
 
@@ -386,6 +393,13 @@ with col3:
         st.markdown(f"# {negatif}")
 
 with col4:
+
+    with st.container(border=True):
+
+        st.markdown("### 😐 Netral")
+        st.markdown(f"# {netral}")
+
+with col5:
 
     with st.container(border=True):
 
