@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import re
 
 # =====================================================
 # PAGE CONFIG
@@ -25,9 +24,11 @@ GLOBAL
 ===================================================== */
 
 html, body, [class*="css"]{
+
     background-color:#050816;
     color:white;
     font-family:'Segoe UI', sans-serif;
+
 }
 
 /* Hide Streamlit Default */
@@ -49,11 +50,13 @@ SIDEBAR
 ===================================================== */
 
 [data-testid="stSidebar"]{
+
     background:linear-gradient(
         180deg,
         #081028 0%,
         #09142d 100%
     );
+
 }
 
 [data-testid="stSidebar"] *{
@@ -65,15 +68,19 @@ TITLE
 ===================================================== */
 
 .main-title{
-    font-size:40px;
+
+    font-size:42px;
     font-weight:700;
     color:white;
     margin-bottom:5px;
+
 }
 
 .sub-title{
+
     color:#9ca3af;
     margin-bottom:30px;
+
 }
 
 /* =====================================================
@@ -82,7 +89,7 @@ CARD
 
 .card{
 
-    background:linear-gradient(
+    background: linear-gradient(
         145deg,
         rgba(17,24,39,0.95),
         rgba(30,41,59,0.90)
@@ -97,19 +104,32 @@ CARD
     box-shadow:
     0 10px 30px rgba(0,0,0,0.4);
 
+    min-height:180px;
+
 }
 
 .card-title{
+
     color:#9ca3af;
-    font-size:18px;
-    margin-bottom:15px;
+
+    font-size:22px;
+
+    margin-bottom:25px;
+
+    font-weight:500;
+
 }
 
 .card-value{
+
     color:white;
-    font-size:42px;
+
+    font-size:46px;
+
     font-weight:bold;
-    margin:0;
+
+    line-height:1.2;
+
 }
 
 /* =====================================================
@@ -118,7 +138,7 @@ CONTENT BOX
 
 .content-box{
 
-    background:linear-gradient(
+    background: linear-gradient(
         145deg,
         rgba(17,24,39,0.95),
         rgba(30,41,59,0.90)
@@ -152,19 +172,18 @@ RESULT ITEM
 
 }
 
-/* =====================================================
-TEXT AREA
-===================================================== */
+.result-item h3{
 
-textarea{
+    margin-bottom:10px;
+    color:#9ca3af;
 
-    background-color:#0f172a !important;
+}
 
-    color:white !important;
+.result-item p{
 
-    border-radius:20px !important;
-
-    border:1px solid rgba(255,255,255,0.1) !important;
+    font-size:20px;
+    font-weight:bold;
+    color:white;
 
 }
 
@@ -175,7 +194,6 @@ BUTTON
 .stButton button{
 
     width:100%;
-
     height:55px;
 
     border:none;
@@ -209,6 +227,22 @@ BUTTON
 }
 
 /* =====================================================
+TEXT AREA
+===================================================== */
+
+textarea{
+
+    background-color:#0f172a !important;
+
+    color:white !important;
+
+    border-radius:20px !important;
+
+    border:1px solid rgba(255,255,255,0.1) !important;
+
+}
+
+/* =====================================================
 UPLOAD
 ===================================================== */
 
@@ -225,7 +259,7 @@ UPLOAD
 }
 
 /* =====================================================
-TABLE
+DATAFRAME
 ===================================================== */
 
 [data-testid="stDataFrame"]{
@@ -256,7 +290,7 @@ METRIC
 """, unsafe_allow_html=True)
 
 # =====================================================
-# DUMMY FUNCTION
+# FUNCTION ANALISIS DUMMY
 # =====================================================
 
 def analyze_emotion(text):
@@ -331,13 +365,13 @@ with col1:
 
     st.markdown("""
     <div class="card">
-        <p class="card-title">
-        📊 Total Analisis
-        </p>
+        <div class="card-title">
+            📊 Total Analisis
+        </div>
 
-        <h1 class="card-value">
-        1,250
-        </h1>
+        <div class="card-value">
+            1,250
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -345,13 +379,13 @@ with col2:
 
     st.markdown("""
     <div class="card">
-        <p class="card-title">
-        😊 Positif
-        </p>
+        <div class="card-title">
+            😊 Positif
+        </div>
 
-        <h1 class="card-value">
-        760
-        </h1>
+        <div class="card-value">
+            760
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -359,13 +393,13 @@ with col3:
 
     st.markdown("""
     <div class="card">
-        <p class="card-title">
-        😡 Negatif
-        </p>
+        <div class="card-title">
+            😡 Negatif
+        </div>
 
-        <h1 class="card-value">
-        390
-        </h1>
+        <div class="card-value">
+            390
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -373,13 +407,13 @@ with col4:
 
     st.markdown("""
     <div class="card">
-        <p class="card-title">
-        🧠 Sarkasme
-        </p>
+        <div class="card-title">
+            🧠 Sarkasme
+        </div>
 
-        <h1 class="card-value">
-        100
-        </h1>
+        <div class="card-value">
+            100
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -392,7 +426,7 @@ if menu == "🏠 Dashboard":
     left, right = st.columns([2,1])
 
     # =================================================
-    # LEFT
+    # LEFT CONTENT
     # =================================================
 
     with left:
@@ -430,7 +464,7 @@ if menu == "🏠 Dashboard":
         )
 
     # =================================================
-    # RIGHT
+    # RIGHT CONTENT
     # =================================================
 
     with right:
