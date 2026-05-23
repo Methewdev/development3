@@ -305,7 +305,7 @@ with col1:
 
     with st.container(border=True):
 
-        st.markdown("### 📊 Total Analisis")
+        st.markdown("### 📊 Total ")
         st.markdown(f"# {total_data}")
 
 with col2:
