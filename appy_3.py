@@ -8,8 +8,7 @@ import pandas as pd
 st.set_page_config(
     page_title="Emotion AI Dashboard",
     page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # =====================================================
@@ -24,14 +23,11 @@ GLOBAL
 ===================================================== */
 
 html, body, [class*="css"]{
-
     background-color:#050816;
     color:white;
-    font-family:'Segoe UI', sans-serif;
-
 }
 
-/* Hide Streamlit Default */
+/* Hide Streamlit */
 
 #MainMenu{
     visibility:hidden;
@@ -50,13 +46,7 @@ SIDEBAR
 ===================================================== */
 
 [data-testid="stSidebar"]{
-
-    background:linear-gradient(
-        180deg,
-        #081028 0%,
-        #09142d 100%
-    );
-
+    background:#081028;
 }
 
 [data-testid="stSidebar"] *{
@@ -64,127 +54,13 @@ SIDEBAR
 }
 
 /* =====================================================
-TITLE
+TEXT AREA
 ===================================================== */
 
-.main-title{
-
-    font-size:42px;
-    font-weight:700;
-    color:white;
-    margin-bottom:5px;
-
-}
-
-.sub-title{
-
-    color:#9ca3af;
-    margin-bottom:30px;
-
-}
-
-/* =====================================================
-CARD
-===================================================== */
-
-.card{
-
-    background: linear-gradient(
-        145deg,
-        rgba(17,24,39,0.95),
-        rgba(30,41,59,0.90)
-    );
-
-    padding:25px;
-
-    border-radius:24px;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    box-shadow:
-    0 10px 30px rgba(0,0,0,0.4);
-
-    min-height:180px;
-
-}
-
-.card-title{
-
-    color:#9ca3af;
-
-    font-size:22px;
-
-    margin-bottom:25px;
-
-    font-weight:500;
-
-}
-
-.card-value{
-
-    color:white;
-
-    font-size:46px;
-
-    font-weight:bold;
-
-    line-height:1.2;
-
-}
-
-/* =====================================================
-CONTENT BOX
-===================================================== */
-
-.content-box{
-
-    background: linear-gradient(
-        145deg,
-        rgba(17,24,39,0.95),
-        rgba(30,41,59,0.90)
-    );
-
-    border-radius:24px;
-
-    padding:25px;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    margin-top:20px;
-
-}
-
-/* =====================================================
-RESULT ITEM
-===================================================== */
-
-.result-item{
-
-    background:#111827;
-
-    padding:18px;
-
-    border-radius:18px;
-
-    margin-bottom:15px;
-
-    border:1px solid rgba(255,255,255,0.05);
-
-}
-
-.result-item h3{
-
-    margin-bottom:10px;
-    color:#9ca3af;
-
-}
-
-.result-item p{
-
-    font-size:20px;
-    font-weight:bold;
-    color:white;
-
+textarea{
+    background:#0f172a !important;
+    color:white !important;
+    border-radius:15px !important;
 }
 
 /* =====================================================
@@ -198,91 +74,22 @@ BUTTON
 
     border:none;
 
-    border-radius:18px;
+    border-radius:15px;
 
-    background:linear-gradient(
-        90deg,
-        #2563eb,
-        #3b82f6
-    );
+    background:#2563eb;
 
     color:white;
 
     font-size:18px;
 
-    font-weight:600;
+    font-weight:bold;
 
 }
 
 .stButton button:hover{
 
-    background:linear-gradient(
-        90deg,
-        #1d4ed8,
-        #2563eb
-    );
-
+    background:#1d4ed8;
     color:white;
-
-}
-
-/* =====================================================
-TEXT AREA
-===================================================== */
-
-textarea{
-
-    background-color:#0f172a !important;
-
-    color:white !important;
-
-    border-radius:20px !important;
-
-    border:1px solid rgba(255,255,255,0.1) !important;
-
-}
-
-/* =====================================================
-UPLOAD
-===================================================== */
-
-[data-testid="stFileUploader"]{
-
-    background:#111827;
-
-    border-radius:20px;
-
-    padding:20px;
-
-    border:1px dashed rgba(255,255,255,0.2);
-
-}
-
-/* =====================================================
-DATAFRAME
-===================================================== */
-
-[data-testid="stDataFrame"]{
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-}
-
-/* =====================================================
-METRIC
-===================================================== */
-
-[data-testid="metric-container"]{
-
-    background:#111827;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    padding:20px;
-
-    border-radius:20px;
 
 }
 
@@ -290,7 +97,7 @@ METRIC
 """, unsafe_allow_html=True)
 
 # =====================================================
-# FUNCTION ANALISIS DUMMY
+# FUNCTION
 # =====================================================
 
 def analyze_emotion(text):
@@ -324,20 +131,16 @@ def analyze_emotion(text):
 # SIDEBAR
 # =====================================================
 
-st.sidebar.markdown("# 🧠 Emotion AI")
-
-st.sidebar.caption(
-    "Analisis Emosi & Sarkasme"
-)
+st.sidebar.title("🧠 Emotion AI")
 
 menu = st.sidebar.radio(
     "MENU",
     [
-        "🏠 Dashboard",
-        "✍️ Analisis Satuan",
-        "📂 Bulk CSV",
-        "📈 Statistik",
-        "📜 Riwayat"
+        "Dashboard",
+        "Analisis Satuan",
+        "Bulk CSV",
+        "Statistik",
+        "Riwayat"
     ]
 )
 
@@ -345,166 +148,88 @@ menu = st.sidebar.radio(
 # HEADER
 # =====================================================
 
-st.markdown("""
-<div class="main-title">
-Dashboard Analisis Emosi
-</div>
+st.title("📊 Dashboard Analisis Emosi")
 
-<div class="sub-title">
-Prototype Analisis Emosi & Sarkasme berbasis Transformer
-</div>
-""", unsafe_allow_html=True)
+st.caption(
+    "Prototype Analisis Emosi & Sarkasme"
+)
 
 # =====================================================
-# METRIC CARD
+# METRICS
 # =====================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-
-    st.markdown("""
-    <div class="card">
-        <div class="card-title">
-            📊 Total Analisis
-        </div>
-
-        <div class="card-value">
-            1,250
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric(
+        "📊 Total Analisis",
+        "1,250"
+    )
 
 with col2:
-
-    st.markdown("""
-    <div class="card">
-        <div class="card-title">
-            😊 Positif
-        </div>
-
-        <div class="card-value">
-            760
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric(
+        "😊 Positif",
+        "760"
+    )
 
 with col3:
-
-    st.markdown("""
-    <div class="card">
-        <div class="card-title">
-            😡 Negatif
-        </div>
-
-        <div class="card-value">
-            390
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric(
+        "😡 Negatif",
+        "390"
+    )
 
 with col4:
-
-    st.markdown("""
-    <div class="card">
-        <div class="card-title">
-            🧠 Sarkasme
-        </div>
-
-        <div class="card-value">
-            100
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric(
+        "🧠 Sarkasme",
+        "100"
+    )
 
 # =====================================================
 # DASHBOARD
 # =====================================================
 
-if menu == "🏠 Dashboard":
+if menu == "Dashboard":
 
-    left, right = st.columns([2,1])
+    st.subheader("📈 Distribusi Emosi")
 
-    # =================================================
-    # LEFT CONTENT
-    # =================================================
+    chart_data = pd.DataFrame({
 
-    with left:
+        "Emosi":[
+            "Senang",
+            "Puas",
+            "Netral",
+            "Marah",
+            "Frustrasi",
+            "Cemas"
+        ],
 
-        st.markdown("""
-        <div class="content-box">
-            <h2>📈 Distribusi Emosi</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        "Jumlah":[
+            480,
+            280,
+            200,
+            150,
+            90,
+            50
+        ]
 
-        chart_data = pd.DataFrame({
+    })
 
-            "Emosi":[
-                "Senang",
-                "Puas",
-                "Netral",
-                "Marah",
-                "Frustrasi",
-                "Cemas"
-            ],
-
-            "Jumlah":[
-                480,
-                280,
-                200,
-                150,
-                90,
-                50
-            ]
-
-        })
-
-        st.bar_chart(
-            chart_data.set_index("Emosi")
-        )
-
-    # =================================================
-    # RIGHT CONTENT
-    # =================================================
-
-    with right:
-
-        st.markdown("""
-        <div class="content-box">
-            <h2>⚡ Quick Action</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.button("✍️ Analisis Satuan")
-
-        st.button("📂 Upload CSV")
-
-        st.button("📈 Statistik")
-
-        st.button("⬇️ Export Laporan")
+    st.bar_chart(
+        chart_data.set_index("Emosi")
+    )
 
 # =====================================================
 # ANALISIS SATUAN
 # =====================================================
 
-elif menu == "✍️ Analisis Satuan":
+elif menu == "Analisis Satuan":
 
     left, right = st.columns([2,1])
 
-    # =================================================
-    # INPUT
-    # =================================================
-
     with left:
 
-        st.markdown("""
-        <div class="content-box">
-            <h2>✍️ Input Ulasan</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
         text = st.text_area(
-            "",
+            "✍️ Input Ulasan",
             height=250,
             placeholder="Masukkan ulasan nasabah..."
         )
@@ -513,14 +238,10 @@ elif menu == "✍️ Analisis Satuan":
             "🔍 Analisis Sekarang"
         )
 
-    # =================================================
-    # RESULT
-    # =================================================
-
     with right:
 
-        emotion = "Netral"
-        sentiment = "Netral"
+        emotion = "-"
+        sentiment = "-"
         confidence = "-"
         sarcasm = "-"
 
@@ -528,59 +249,32 @@ elif menu == "✍️ Analisis Satuan":
 
             emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
-        st.markdown(f"""
-        <div class="content-box">
+        st.subheader("📌 Hasil")
 
-            <h2>📌 Hasil Analisis</h2>
+        st.info(f"😡 Emosi : {emotion}")
 
-            <div class="result-item">
-                <h3>😡 Emosi</h3>
-                <p>{emotion}</p>
-            </div>
+        st.success(f"💬 Sentimen : {sentiment}")
 
-            <div class="result-item">
-                <h3>🎯 Confidence</h3>
-                <p>{confidence}</p>
-            </div>
+        st.warning(f"🎯 Confidence : {confidence}")
 
-            <div class="result-item">
-                <h3>💬 Sentimen</h3>
-                <p>{sentiment}</p>
-            </div>
-
-            <div class="result-item">
-                <h3>🧠 Sarkasme</h3>
-                <p>{sarcasm}</p>
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
+        st.error(f"🧠 Sarkasme : {sarcasm}")
 
 # =====================================================
 # BULK CSV
 # =====================================================
 
-elif menu == "📂 Bulk CSV":
-
-    st.markdown("""
-    <div class="content-box">
-        <h2>📂 Upload CSV</h2>
-        <p>Upload file CSV untuk analisis massal</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif menu == "Bulk CSV":
 
     uploaded_file = st.file_uploader(
-        "Upload CSV",
+        "📂 Upload CSV",
         type=["csv"]
     )
 
-    if uploaded_file is not None:
+    if uploaded_file:
 
         df = pd.read_csv(uploaded_file)
 
-        st.success(
-            "✅ File berhasil diupload"
-        )
+        st.success("✅ File berhasil diupload")
 
         st.dataframe(
             df,
@@ -622,7 +316,7 @@ elif menu == "📂 Bulk CSV":
 
             st.download_button(
 
-                label="⬇️ Download Hasil",
+                label="⬇️ Download Hasil CSV",
 
                 data=csv,
 
@@ -636,13 +330,7 @@ elif menu == "📂 Bulk CSV":
 # STATISTIK
 # =====================================================
 
-elif menu == "📈 Statistik":
-
-    st.markdown("""
-    <div class="content-box">
-        <h2>📈 Statistik Analisis</h2>
-    </div>
-    """, unsafe_allow_html=True)
+elif menu == "Statistik":
 
     stats_data = pd.DataFrame({
 
@@ -672,13 +360,7 @@ elif menu == "📈 Statistik":
 # RIWAYAT
 # =====================================================
 
-elif menu == "📜 Riwayat":
-
-    st.markdown("""
-    <div class="content-box">
-        <h2>📜 Riwayat Analisis</h2>
-    </div>
-    """, unsafe_allow_html=True)
+elif menu == "Riwayat":
 
     history = pd.DataFrame({
 
@@ -717,7 +399,7 @@ elif menu == "📜 Riwayat":
 # FOOTER
 # =====================================================
 
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("---")
 
 st.caption(
     "© 2026 Emotion AI Dashboard"
