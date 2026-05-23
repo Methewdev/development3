@@ -59,15 +59,35 @@ SIDEBAR
 ===================================================== */
 
 [data-testid="stSidebar"]{
-    background: linear-gradient(
-        180deg,
-        #081028 0%,
-        #09142d 100%
-    );
+    background:#050816;
 }
 
-[data-testid="stSidebar"] *{
-    color:white;
+/* =====================================================
+MENU STYLE
+===================================================== */
+
+div[role="radiogroup"] > label{
+
+    background:#111827;
+
+    padding:12px;
+
+    border-radius:14px;
+
+    margin-bottom:10px;
+
+    border:1px solid rgba(255,255,255,0.05);
+
+    transition:0.3s;
+
+}
+
+div[role="radiogroup"] > label:hover{
+
+    background:#1e293b;
+
+    transform:translateX(5px);
+
 }
 
 /* =====================================================
@@ -220,18 +240,80 @@ def analyze_emotion(text):
 # SIDEBAR
 # =====================================================
 
-st.sidebar.markdown("# 🧠 Emotion AI")
+with st.sidebar:
 
-menu = st.sidebar.radio(
-    "MENU",
-    [
-        "Dashboard",
-        "Analisis Satuan",
-        "Bulk CSV",
-        "Statistik",
-        "Riwayat"
-    ]
-)
+    st.markdown("""
+
+    <div style="
+        background: linear-gradient(
+            145deg,
+            rgba(17,24,39,0.95),
+            rgba(30,41,59,0.90)
+        );
+        padding:25px;
+        border-radius:25px;
+        border:1px solid rgba(255,255,255,0.08);
+        margin-bottom:20px;
+    ">
+
+    <h1 style="
+        color:white;
+        font-size:36px;
+        margin-bottom:10px;
+    ">
+    🧠 Emotion AI
+    </h1>
+
+    <p style="
+        color:#94a3b8;
+        font-size:15px;
+    ">
+    Dashboard Analisis Emosi & Sarkasme
+    </p>
+
+    </div>
+
+    """, unsafe_allow_html=True)
+
+    # =============================================
+    # MENU
+    # =============================================
+
+    menu = st.radio(
+
+        "📌 MENU",
+
+        [
+
+            "🏠 Dashboard",
+
+            "✍️ Analisis Satuan",
+
+            "📂 Bulk CSV",
+
+            "📈 Statistik",
+
+            "🕘 Riwayat"
+
+        ]
+
+    )
+
+    st.markdown("---")
+
+    # =============================================
+    # REFRESH BUTTON
+    # =============================================
+
+    if st.button("🔄 Refresh Dashboard"):
+
+        st.session_state.result_df = None
+
+        st.success(
+            "✅ Dashboard berhasil direset"
+        )
+
+        st.rerun()
 
 # =====================================================
 # HEADER
@@ -314,7 +396,7 @@ with col4:
 # DASHBOARD
 # =====================================================
 
-if menu == "Dashboard":
+if menu == "🏠 Dashboard":
 
     st.subheader("📊 Dashboard")
 
@@ -352,10 +434,6 @@ if menu == "Dashboard":
             "Emosi",
             "Jumlah"
         ]
-
-        # =============================================
-        # BAR CHART
-        # =============================================
 
         fig = px.bar(
 
@@ -411,7 +489,7 @@ if menu == "Dashboard":
 # ANALISIS SATUAN
 # =====================================================
 
-elif menu == "Analisis Satuan":
+elif menu == "✍️ Analisis Satuan":
 
     left, right = st.columns([2,1])
 
@@ -452,7 +530,7 @@ elif menu == "Analisis Satuan":
 # BULK CSV
 # =====================================================
 
-elif menu == "Bulk CSV":
+elif menu == "📂 Bulk CSV":
 
     st.subheader("📂 Upload CSV")
 
@@ -465,15 +543,7 @@ elif menu == "Bulk CSV":
 
         try:
 
-            # =========================================
-            # READ RAW FILE
-            # =========================================
-
             raw_data = uploaded_file.read()
-
-            # =========================================
-            # DETECT ENCODING
-            # =========================================
 
             detected = chardet.detect(raw_data)
 
@@ -481,18 +551,10 @@ elif menu == "Bulk CSV":
 
             st.info(f"Encoding terdeteksi : {encoding}")
 
-            # =========================================
-            # DECODE FILE
-            # =========================================
-
             decoded_data = raw_data.decode(
                 encoding,
                 errors="ignore"
             )
-
-            # =========================================
-            # READ CSV
-            # =========================================
 
             try:
 
@@ -508,18 +570,10 @@ elif menu == "Bulk CSV":
                     sep=","
                 )
 
-            # =========================================
-            # REMOVE EMPTY COLUMN
-            # =========================================
-
             df = df.dropna(
                 axis=1,
                 how="all"
             )
-
-            # =========================================
-            # SUCCESS
-            # =========================================
 
             st.success(
                 "✅ File berhasil diupload"
@@ -536,18 +590,10 @@ elif menu == "Bulk CSV":
                 f"Jumlah Data : {len(df)}"
             )
 
-            # =========================================
-            # PILIH KOLOM ULASAN
-            # =========================================
-
             selected_column = st.selectbox(
                 "Pilih Kolom Ulasan",
                 df.columns
             )
-
-            # =========================================
-            # ANALISIS
-            # =========================================
 
             if st.button("🚀 Mulai Analisis"):
 
@@ -581,19 +627,11 @@ elif menu == "Bulk CSV":
 
                 result_df = pd.DataFrame(results)
 
-                # =====================================
-                # SAVE SESSION
-                # =====================================
-
                 st.session_state.result_df = result_df
 
                 st.success(
                     "✅ Analisis selesai"
                 )
-
-                # =====================================
-                # DISTRIBUSI EMOSI
-                # =====================================
 
                 st.subheader("📈 Distribusi Emosi")
 
@@ -607,10 +645,6 @@ elif menu == "Bulk CSV":
                     "Emosi",
                     "Jumlah"
                 ]
-
-                # =====================================
-                # BAR CHART
-                # =====================================
 
                 fig = px.bar(
 
@@ -651,20 +685,12 @@ elif menu == "Bulk CSV":
                     use_container_width=True
                 )
 
-                # =====================================
-                # HASIL ANALISIS
-                # =====================================
-
                 st.subheader("📋 Hasil Analisis")
 
                 st.dataframe(
                     result_df,
                     use_container_width=True
                 )
-
-                # =====================================
-                # DOWNLOAD CSV
-                # =====================================
 
                 csv = result_df.to_csv(index=False)
 
@@ -692,7 +718,7 @@ elif menu == "Bulk CSV":
 # STATISTIK
 # =====================================================
 
-elif menu == "Statistik":
+elif menu == "📈 Statistik":
 
     st.subheader("📈 Statistik")
 
@@ -754,7 +780,7 @@ elif menu == "Statistik":
 # RIWAYAT
 # =====================================================
 
-elif menu == "Riwayat":
+elif menu == "🕘 Riwayat":
 
     st.subheader("📜 Riwayat")
 
