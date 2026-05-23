@@ -14,43 +14,6 @@ st.set_page_config(
 )
 
 # =====================================================
-# DUMMY DATA
-# =====================================================
-
-dummy_history = pd.DataFrame({
-    "Tanggal": [
-        "31 Mei 2026",
-        "30 Mei 2026",
-        "29 Mei 2026"
-    ],
-    "Ulasan": [
-        "Aplikasi bagus tapi sering error",
-        "Transfer cepat dan mudah",
-        "Maintenance terus sangat mengganggu"
-    ],
-    "Emosi": [
-        "Frustrasi",
-        "Senang",
-        "Marah"
-    ],
-    "Confidence": [
-        "98.22%",
-        "99.01%",
-        "97.65%"
-    ],
-    "Sentimen": [
-        "Negatif",
-        "Positif",
-        "Negatif"
-    ],
-    "Sarkasme": [
-        "Ya",
-        "Tidak",
-        "Tidak"
-    ]
-})
-
-# =====================================================
 # CUSTOM CSS
 # =====================================================
 
@@ -61,122 +24,113 @@ st.markdown("""
 GLOBAL
 ===================================================== */
 
-html, body, [class*="css"] {
-    background-color: #050816;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
+html, body, [class*="css"]{
+    background-color:#050816;
+    color:white;
+    font-family:'Segoe UI', sans-serif;
 }
 
-/* Hide Streamlit Menu */
+/* Hide Streamlit Default */
 
-#MainMenu {
-    visibility: hidden;
+#MainMenu{
+    visibility:hidden;
 }
 
-footer {
-    visibility: hidden;
+footer{
+    visibility:hidden;
 }
 
-header {
-    visibility: hidden;
+header{
+    visibility:hidden;
 }
 
 /* =====================================================
 SIDEBAR
 ===================================================== */
 
-[data-testid="stSidebar"] {
-    background: linear-gradient(
+[data-testid="stSidebar"]{
+    background:linear-gradient(
         180deg,
         #081028 0%,
         #09142d 100%
     );
-    border-right: 1px solid rgba(255,255,255,0.1);
 }
 
-[data-testid="stSidebar"] * {
-    color: white;
+[data-testid="stSidebar"] *{
+    color:white;
 }
 
 /* =====================================================
 TITLE
 ===================================================== */
 
-.main-title {
-    font-size: 38px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 5px;
+.main-title{
+    font-size:40px;
+    font-weight:700;
+    color:white;
+    margin-bottom:5px;
 }
 
-.sub-title {
-    color: #9ca3af;
-    margin-bottom: 30px;
+.sub-title{
+    color:#9ca3af;
+    margin-bottom:30px;
 }
 
 /* =====================================================
-CARDS
+CARD
 ===================================================== */
 
-.card {
+.card{
 
-    background: linear-gradient(
+    background:linear-gradient(
         145deg,
         rgba(17,24,39,0.95),
         rgba(30,41,59,0.90)
     );
 
-    border: 1px solid rgba(255,255,255,0.08);
+    padding:25px;
 
-    padding: 25px;
+    border-radius:24px;
 
-    border-radius: 24px;
+    border:1px solid rgba(255,255,255,0.08);
 
     box-shadow:
     0 10px 30px rgba(0,0,0,0.4);
 
-    transition: 0.3s;
-
 }
 
-.card:hover {
-    transform: translateY(-5px);
+.card-title{
+    color:#9ca3af;
+    font-size:18px;
+    margin-bottom:15px;
 }
 
-.card-title {
-    color: #9ca3af;
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-
-.card-value {
-    font-size: 42px;
-    font-weight: bold;
-    color: white;
+.card-value{
+    color:white;
+    font-size:42px;
+    font-weight:bold;
+    margin:0;
 }
 
 /* =====================================================
 CONTENT BOX
 ===================================================== */
 
-.content-box {
+.content-box{
 
-    background: linear-gradient(
+    background:linear-gradient(
         145deg,
         rgba(17,24,39,0.95),
         rgba(30,41,59,0.90)
     );
 
-    border: 1px solid rgba(255,255,255,0.08);
+    border-radius:24px;
 
-    padding: 25px;
+    padding:25px;
 
-    border-radius: 24px;
+    border:1px solid rgba(255,255,255,0.08);
 
-    margin-top: 20px;
-
-    box-shadow:
-    0 10px 30px rgba(0,0,0,0.3);
+    margin-top:20px;
 
 }
 
@@ -184,55 +138,17 @@ CONTENT BOX
 RESULT ITEM
 ===================================================== */
 
-.result-item {
+.result-item{
 
-    background: #111827;
+    background:#111827;
 
-    padding: 18px;
+    padding:18px;
 
-    border-radius: 18px;
+    border-radius:18px;
 
-    margin-bottom: 15px;
+    margin-bottom:15px;
 
-    border: 1px solid rgba(255,255,255,0.05);
-
-}
-
-/* =====================================================
-BUTTON
-===================================================== */
-
-.stButton button {
-
-    width: 100%;
-    height: 55px;
-
-    border: none;
-
-    border-radius: 18px;
-
-    background: linear-gradient(
-        90deg,
-        #2563eb,
-        #3b82f6
-    );
-
-    color: white;
-
-    font-size: 18px;
-    font-weight: 600;
-
-}
-
-.stButton button:hover {
-
-    background: linear-gradient(
-        90deg,
-        #1d4ed8,
-        #2563eb
-    );
-
-    color: white;
+    border:1px solid rgba(255,255,255,0.05);
 
 }
 
@@ -240,50 +156,135 @@ BUTTON
 TEXT AREA
 ===================================================== */
 
-textarea {
+textarea{
 
-    background-color: #0f172a !important;
+    background-color:#0f172a !important;
 
-    color: white !important;
+    color:white !important;
 
-    border-radius: 20px !important;
+    border-radius:20px !important;
 
-    border: 1px solid rgba(255,255,255,0.1) !important;
-
-}
-
-/* =====================================================
-UPLOAD FILE
-===================================================== */
-
-[data-testid="stFileUploader"] {
-
-    background: #111827;
-
-    border-radius: 20px;
-
-    padding: 20px;
-
-    border: 1px dashed rgba(255,255,255,0.2);
+    border:1px solid rgba(255,255,255,0.1) !important;
 
 }
 
 /* =====================================================
-DATAFRAME
+BUTTON
 ===================================================== */
 
-[data-testid="stDataFrame"] {
+.stButton button{
 
-    border-radius: 20px;
+    width:100%;
 
-    overflow: hidden;
+    height:55px;
 
-    border: 1px solid rgba(255,255,255,0.08);
+    border:none;
+
+    border-radius:18px;
+
+    background:linear-gradient(
+        90deg,
+        #2563eb,
+        #3b82f6
+    );
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:600;
+
+}
+
+.stButton button:hover{
+
+    background:linear-gradient(
+        90deg,
+        #1d4ed8,
+        #2563eb
+    );
+
+    color:white;
+
+}
+
+/* =====================================================
+UPLOAD
+===================================================== */
+
+[data-testid="stFileUploader"]{
+
+    background:#111827;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    border:1px dashed rgba(255,255,255,0.2);
+
+}
+
+/* =====================================================
+TABLE
+===================================================== */
+
+[data-testid="stDataFrame"]{
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+/* =====================================================
+METRIC
+===================================================== */
+
+[data-testid="metric-container"]{
+
+    background:#111827;
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    padding:20px;
+
+    border-radius:20px;
 
 }
 
 </style>
 """, unsafe_allow_html=True)
+
+# =====================================================
+# DUMMY FUNCTION
+# =====================================================
+
+def analyze_emotion(text):
+
+    text = str(text).lower()
+
+    emotion = "Netral"
+    sentiment = "Netral"
+    confidence = "98.20%"
+    sarcasm = "Tidak"
+
+    if "bagus" in text:
+        emotion = "Senang"
+        sentiment = "Positif"
+
+    if "error" in text:
+        emotion = "Frustrasi"
+        sentiment = "Negatif"
+
+    if "gagal" in text:
+        emotion = "Marah"
+        sentiment = "Negatif"
+
+    if "cepat" in text:
+        emotion = "Puas"
+        sentiment = "Positif"
+
+    return emotion, sentiment, confidence, sarcasm
 
 # =====================================================
 # SIDEBAR
@@ -321,7 +322,7 @@ Prototype Analisis Emosi & Sarkasme berbasis Transformer
 """, unsafe_allow_html=True)
 
 # =====================================================
-# METRIC CARDS
+# METRIC CARD
 # =====================================================
 
 col1, col2, col3, col4 = st.columns(4)
@@ -330,13 +331,13 @@ with col1:
 
     st.markdown("""
     <div class="card">
-        <div class="card-title">
+        <p class="card-title">
         📊 Total Analisis
-        </div>
+        </p>
 
-        <div class="card-value">
+        <h1 class="card-value">
         1,250
-        </div>
+        </h1>
     </div>
     """, unsafe_allow_html=True)
 
@@ -344,13 +345,13 @@ with col2:
 
     st.markdown("""
     <div class="card">
-        <div class="card-title">
+        <p class="card-title">
         😊 Positif
-        </div>
+        </p>
 
-        <div class="card-value">
+        <h1 class="card-value">
         760
-        </div>
+        </h1>
     </div>
     """, unsafe_allow_html=True)
 
@@ -358,13 +359,13 @@ with col3:
 
     st.markdown("""
     <div class="card">
-        <div class="card-title">
+        <p class="card-title">
         😡 Negatif
-        </div>
+        </p>
 
-        <div class="card-value">
+        <h1 class="card-value">
         390
-        </div>
+        </h1>
     </div>
     """, unsafe_allow_html=True)
 
@@ -372,13 +373,13 @@ with col4:
 
     st.markdown("""
     <div class="card">
-        <div class="card-title">
+        <p class="card-title">
         🧠 Sarkasme
-        </div>
+        </p>
 
-        <div class="card-value">
+        <h1 class="card-value">
         100
-        </div>
+        </h1>
     </div>
     """, unsafe_allow_html=True)
 
@@ -403,7 +404,8 @@ if menu == "🏠 Dashboard":
         """, unsafe_allow_html=True)
 
         chart_data = pd.DataFrame({
-            "Emosi": [
+
+            "Emosi":[
                 "Senang",
                 "Puas",
                 "Netral",
@@ -411,7 +413,8 @@ if menu == "🏠 Dashboard":
                 "Frustrasi",
                 "Cemas"
             ],
-            "Jumlah": [
+
+            "Jumlah":[
                 480,
                 280,
                 200,
@@ -419,6 +422,7 @@ if menu == "🏠 Dashboard":
                 90,
                 50
             ]
+
         })
 
         st.bar_chart(
@@ -437,17 +441,13 @@ if menu == "🏠 Dashboard":
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button("✍️ Analisis Satuan"):
-            st.success("Menu Analisis Satuan dipilih")
+        st.button("✍️ Analisis Satuan")
 
-        if st.button("📂 Upload CSV"):
-            st.success("Menu Upload CSV dipilih")
+        st.button("📂 Upload CSV")
 
-        if st.button("📈 Statistik"):
-            st.success("Menu Statistik dipilih")
+        st.button("📈 Statistik")
 
-        if st.button("⬇️ Export Laporan"):
-            st.success("Export berhasil")
+        st.button("⬇️ Export Laporan")
 
 # =====================================================
 # ANALISIS SATUAN
@@ -485,26 +485,14 @@ elif menu == "✍️ Analisis Satuan":
 
     with right:
 
-        emotion = "MARAH"
-        confidence = "99.86%"
-        sentiment = "Negatif"
-        sarcasm = "Tidak"
+        emotion = "Netral"
+        sentiment = "Netral"
+        confidence = "-"
+        sarcasm = "-"
 
         if analyze:
 
-            text_lower = text.lower()
-
-            if "bagus" in text_lower:
-                emotion = "SENANG"
-                sentiment = "Positif"
-
-            if "error" in text_lower:
-                emotion = "FRUSTRASI"
-                sentiment = "Negatif"
-
-            if "gagal" in text_lower:
-                emotion = "MARAH"
-                sentiment = "Negatif"
+            emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
         st.markdown(f"""
         <div class="content-box">
@@ -552,7 +540,7 @@ elif menu == "📂 Bulk CSV":
         type=["csv"]
     )
 
-    if uploaded_file:
+    if uploaded_file is not None:
 
         df = pd.read_csv(uploaded_file)
 
@@ -573,25 +561,16 @@ elif menu == "📂 Bulk CSV":
 
                 text = str(df.iloc[i,0])
 
-                emotion = "Netral"
-                sentiment = "Netral"
-
-                if "bagus" in text.lower():
-                    emotion = "Senang"
-                    sentiment = "Positif"
-
-                elif "error" in text.lower():
-                    emotion = "Frustrasi"
-                    sentiment = "Negatif"
-
-                elif "gagal" in text.lower():
-                    emotion = "Marah"
-                    sentiment = "Negatif"
+                emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
                 results.append({
+
                     "Text": text,
                     "Emosi": emotion,
-                    "Sentimen": sentiment
+                    "Sentimen": sentiment,
+                    "Confidence": confidence,
+                    "Sarkasme": sarcasm
+
                 })
 
             result_df = pd.DataFrame(results)
@@ -603,6 +582,20 @@ elif menu == "📂 Bulk CSV":
             st.dataframe(
                 result_df,
                 use_container_width=True
+            )
+
+            csv = result_df.to_csv(index=False)
+
+            st.download_button(
+
+                label="⬇️ Download Hasil",
+
+                data=csv,
+
+                file_name="hasil_analisis.csv",
+
+                mime="text/csv"
+
             )
 
 # =====================================================
@@ -619,7 +612,7 @@ elif menu == "📈 Statistik":
 
     stats_data = pd.DataFrame({
 
-        "Hari": [
+        "Hari":[
             "Sen",
             "Sel",
             "Rab",
@@ -627,7 +620,7 @@ elif menu == "📈 Statistik":
             "Jum"
         ],
 
-        "Positif": [
+        "Positif":[
             120,
             150,
             130,
@@ -653,8 +646,36 @@ elif menu == "📜 Riwayat":
     </div>
     """, unsafe_allow_html=True)
 
+    history = pd.DataFrame({
+
+        "Tanggal":[
+            "31 Mei 2026",
+            "30 Mei 2026",
+            "29 Mei 2026"
+        ],
+
+        "Ulasan":[
+            "Aplikasi bagus tapi sering error",
+            "Transfer cepat dan mudah",
+            "Maintenance terus sangat mengganggu"
+        ],
+
+        "Emosi":[
+            "Frustrasi",
+            "Senang",
+            "Marah"
+        ],
+
+        "Sentimen":[
+            "Negatif",
+            "Positif",
+            "Negatif"
+        ]
+
+    })
+
     st.dataframe(
-        dummy_history,
+        history,
         use_container_width=True
     )
 
