@@ -4,6 +4,7 @@ import chardet
 import plotly.express as px
 
 from io import StringIO
+from transformers import pipeline
 
 # =====================================================
 # PAGE CONFIG
@@ -22,6 +23,27 @@ st.set_page_config(
 
 if "result_df" not in st.session_state:
     st.session_state.result_df = None
+
+# =====================================================
+# LOAD HUGGINGFACE MODEL
+# =====================================================
+
+@st.cache_resource
+def load_model():
+
+    classifier = pipeline(
+
+        task="text-classification",
+
+        model="envidevelopment/model3",
+
+        tokenizer="envidevelopment/model3"
+
+    )
+
+    return classifier
+
+classifier = load_model()
 
 # =====================================================
 # CUSTOM CSS
@@ -211,30 +233,75 @@ h1, h2, h3, h4{
 
 def analyze_emotion(text):
 
-    text = str(text).lower()
+    try:
 
-    emotion = "Netral"
-    sentiment = "Netral"
-    confidence = "98.20%"
-    sarcasm = "Tidak"
+        result = classifier(text)
 
-    if "bagus" in text:
-        emotion = "Senang"
-        sentiment = "Positif"
+        label = result[0]["label"]
 
-    elif "error" in text:
-        emotion = "Frustrasi"
-        sentiment = "Negatif"
+        score = result[0]["score"]
 
-    elif "gagal" in text:
-        emotion = "Marah"
-        sentiment = "Negatif"
+        confidence = f"{score * 100:.2f}%"
 
-    elif "cepat" in text:
-        emotion = "Puas"
-        sentiment = "Positif"
+        # =============================================
+        # LABEL MAPPING
+        # =============================================
 
-    return emotion, sentiment, confidence, sarcasm
+        label_map = {
+
+            "LABEL_0": ("Negatif", "Marah"),
+            "LABEL_1": ("Netral", "Netral"),
+            "LABEL_2": ("Positif", "Senang")
+
+        }
+
+        sentiment, emotion = label_map.get(
+
+            label,
+
+            ("Netral", "Netral")
+
+        )
+
+        # =============================================
+        # SIMPLE SARCASM DETECTION
+        # =============================================
+
+        sarcasm = "Tidak"
+
+        sarcasm_keywords = [
+
+            "mantap error terus",
+            "hebat banget lemot",
+            "luar biasa gagal terus"
+
+        ]
+
+        for keyword in sarcasm_keywords:
+
+            if keyword in text.lower():
+
+                sarcasm = "Ya"
+
+        return (
+
+            emotion,
+            sentiment,
+            confidence,
+            sarcasm
+
+        )
+
+    except Exception as e:
+
+        return (
+
+            "Netral",
+            "Netral",
+            "0%",
+            "Tidak"
+
+        )
 
 # =====================================================
 # SIDEBAR
@@ -322,7 +389,7 @@ with st.sidebar:
 st.title("📊 Dashboard Analisis Emosi")
 
 st.caption(
-    "Prototype Analisis Emosi & Sarkasme berbasis AI"
+    "Prototype Analisis Emosi & Sarkasme berbasis Hugging Face"
 )
 
 # =====================================================
@@ -375,7 +442,7 @@ with col1:
 
     with st.container(border=True):
 
-        st.markdown("### 📊 Total ")
+        st.markdown("### 📊 Total")
         st.markdown(f"# {total_data}")
 
 with col2:
@@ -418,10 +485,6 @@ if menu == "🏠 Dashboard":
 
         st.warning(
             "⚠️ Belum ada data bulk yang diproses"
-        )
-
-        st.info(
-            "Silakan upload CSV pada menu Bulk CSV"
         )
 
     else:
@@ -473,12 +536,6 @@ if menu == "🏠 Dashboard":
 
             font_color="white",
 
-            title_font_size=24,
-
-            xaxis_title="Kategori Emosi",
-
-            yaxis_title="Jumlah Data",
-
             height=500
 
         )
@@ -487,10 +544,6 @@ if menu == "🏠 Dashboard":
             fig,
             use_container_width=True
         )
-
-        # =============================================
-        # HASIL ANALISIS
-        # =============================================
 
         st.subheader("📋 Hasil Analisis")
 
@@ -510,9 +563,13 @@ elif menu == "✍️ Analisis Satuan":
     with left:
 
         text = st.text_area(
+
             "✍️ Input Ulasan",
+
             height=250,
+
             placeholder="Masukkan ulasan nasabah..."
+
         )
 
         analyze = st.button(
@@ -526,7 +583,7 @@ elif menu == "✍️ Analisis Satuan":
         confidence = "-"
         sarcasm = "-"
 
-        if analyze:
+        if analyze and text != "":
 
             emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
@@ -549,13 +606,20 @@ elif menu == "📂 Bulk CSV":
     st.subheader("📂 Upload CSV")
 
     uploaded_file = st.file_uploader(
+
         "Upload CSV",
+
         type=["csv"]
+
     )
 
     if uploaded_file is not None:
 
         try:
+
+            # =========================================
+            # READ RAW FILE
+            # =========================================
 
             raw_data = uploaded_file.read()
 
@@ -563,12 +627,19 @@ elif menu == "📂 Bulk CSV":
 
             encoding = detected["encoding"]
 
-            st.info(f"Encoding terdeteksi : {encoding}")
+            st.info(f"Encoding : {encoding}")
 
             decoded_data = raw_data.decode(
+
                 encoding,
+
                 errors="ignore"
+
             )
+
+            # =========================================
+            # READ CSV
+            # =========================================
 
             try:
 
@@ -593,21 +664,22 @@ elif menu == "📂 Bulk CSV":
                 "✅ File berhasil diupload"
             )
 
-            st.write("### Preview Dataset")
-
             st.dataframe(
                 df.head(),
                 use_container_width=True
             )
 
-            st.write(
-                f"Jumlah Data : {len(df)}"
+            selected_column = st.selectbox(
+
+                "Pilih Kolom Ulasan",
+
+                df.columns
+
             )
 
-            selected_column = st.selectbox(
-                "Pilih Kolom Ulasan",
-                df.columns
-            )
+            # =========================================
+            # ANALISIS
+            # =========================================
 
             if st.button("🚀 Mulai Analisis"):
 
@@ -647,7 +719,9 @@ elif menu == "📂 Bulk CSV":
                     "✅ Analisis selesai"
                 )
 
-                st.subheader("📈 Distribusi Emosi")
+                # =====================================
+                # DISTRIBUSI EMOSI
+                # =====================================
 
                 emotion_count = (
                     result_df["Emosi"]
@@ -684,12 +758,6 @@ elif menu == "📂 Bulk CSV":
 
                     font_color="white",
 
-                    title_font_size=24,
-
-                    xaxis_title="Kategori Emosi",
-
-                    yaxis_title="Jumlah Data",
-
                     height=500
 
                 )
@@ -705,6 +773,10 @@ elif menu == "📂 Bulk CSV":
                     result_df,
                     use_container_width=True
                 )
+
+                # =====================================
+                # DOWNLOAD
+                # =====================================
 
                 csv = result_df.to_csv(index=False)
 
@@ -739,7 +811,7 @@ elif menu == "📈 Statistik":
     if st.session_state.result_df is None:
 
         st.warning(
-            "⚠️ Belum ada data bulk"
+            "⚠️ Belum ada data"
         )
 
     else:
@@ -801,7 +873,7 @@ elif menu == "🕘 Riwayat":
     if st.session_state.result_df is None:
 
         st.warning(
-            "⚠️ Belum ada riwayat bulk"
+            "⚠️ Belum ada riwayat"
         )
 
     else:
