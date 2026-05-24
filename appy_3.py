@@ -85,13 +85,11 @@ SIDEBAR
 ===================================================== */
 
 [data-testid="stSidebar"]{
-
     background:#050816;
-
 }
 
 /* =====================================================
-MENU STYLE
+MENU
 ===================================================== */
 
 div[role="radiogroup"] > label{
@@ -120,94 +118,6 @@ div[role="radiogroup"] > label:hover{
 
 /* =====================================================
 CARD
-===================================================== */
-
-[data-testid="stVerticalBlockBorderWrapper"]{
-
-    background: linear-gradient(
-        145deg,
-        rgba(17,24,39,0.95),
-        rgba(30,41,59,0.90)
-    );
-
-    border-radius:24px;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    padding:15px;
-
-    box-shadow:
-    0 10px 30px rgba(0,0,0,0.4);
-
-}
-
-/* =====================================================
-BUTTON
-===================================================== */
-
-.stButton button{
-
-    width:100%;
-    height:55px;
-
-    border:none;
-
-    border-radius:16px;
-
-    background: linear-gradient(
-        90deg,
-        #2563eb,
-        #3b82f6
-    );
-
-    color:white;
-
-    font-size:18px;
-
-    font-weight:600;
-
-}
-
-.stButton button:hover{
-
-    background: linear-gradient(
-        90deg,
-        #1d4ed8,
-        #2563eb
-    );
-
-}
-
-/* =====================================================
-TEXT AREA
-===================================================== */
-
-textarea{
-
-    background:#0f172a !important;
-    color:white !important;
-    border-radius:15px !important;
-
-}
-
-/* =====================================================
-UPLOAD
-===================================================== */
-
-[data-testid="stFileUploader"]{
-
-    background:#111827;
-
-    border-radius:20px;
-
-    padding:20px;
-
-    border:1px dashed rgba(255,255,255,0.2);
-
-}
-
-/* =====================================================
-METRIC CARD
 ===================================================== */
 
 .metric-card{
@@ -283,6 +193,45 @@ RESULT BOX
     background:#5b2333;
 }
 
+/* =====================================================
+BUTTON
+===================================================== */
+
+.stButton button{
+
+    width:100%;
+    height:55px;
+
+    border:none;
+
+    border-radius:16px;
+
+    background: linear-gradient(
+        90deg,
+        #2563eb,
+        #3b82f6
+    );
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:600;
+
+}
+
+/* =====================================================
+TEXT AREA
+===================================================== */
+
+textarea{
+
+    background:#0f172a !important;
+    color:white !important;
+    border-radius:15px !important;
+
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -294,40 +243,42 @@ def analyze_emotion(text):
 
     try:
 
-        result = classifier(text)
+        result = classifier(str(text))
 
-        label = result[0]["label"].lower()
+        raw_label = result[0]["label"]
+
+        label = raw_label.lower()
 
         score = result[0]["score"]
 
         confidence = f"{score * 100:.2f}%"
 
         # =============================================
-        # MAPPING LABEL
+        # LABEL MAPPING
         # =============================================
 
-        if label == "positive":
-
-            sentiment = "Positif"
-            emotion = "Senang"
-
-        elif label == "negative":
+        if label == "label_0":
 
             sentiment = "Negatif"
             emotion = "Marah"
 
-        elif label == "neutral":
+        elif label == "label_1":
 
             sentiment = "Netral"
             emotion = "Netral"
 
+        elif label == "label_2":
+
+            sentiment = "Positif"
+            emotion = "Senang"
+
         else:
 
-            sentiment = label
-            emotion = label
+            sentiment = raw_label
+            emotion = raw_label
 
         # =============================================
-        # SARCASM DETECTION
+        # SARCASM
         # =============================================
 
         sarcasm = "Tidak"
@@ -342,7 +293,7 @@ def analyze_emotion(text):
 
         for keyword in sarcasm_keywords:
 
-            if keyword in text.lower():
+            if keyword in str(text).lower():
 
                 sarcasm = "Ya"
 
@@ -388,8 +339,7 @@ with st.sidebar:
 
     <h1 style="
         color:white;
-        font-size:36px;
-        margin-bottom:10px;
+        font-size:34px;
     ">
     🧠 Emotion AI
     </h1>
@@ -480,7 +430,7 @@ if st.session_state.result_df is not None:
     )
 
 # =====================================================
-# METRIC CARDS
+# METRIC CARD
 # =====================================================
 
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -548,14 +498,6 @@ if menu == "🏠 Dashboard":
 
         result_df = st.session_state.result_df
 
-        st.success(
-            "✅ Data berhasil dianalisis"
-        )
-
-        # =============================================
-        # CHART
-        # =============================================
-
         emotion_count = (
             result_df["Emosi"]
             .value_counts()
@@ -566,6 +508,10 @@ if menu == "🏠 Dashboard":
             "Emosi",
             "Jumlah"
         ]
+
+        # =============================================
+        # BAR CHART
+        # =============================================
 
         fig = px.bar(
 
@@ -585,9 +531,9 @@ if menu == "🏠 Dashboard":
 
         fig.update_layout(
 
-            paper_bgcolor="#0b1120",
+            paper_bgcolor="#050816",
 
-            plot_bgcolor="#0b1120",
+            plot_bgcolor="#050816",
 
             font_color="white",
 
@@ -702,6 +648,10 @@ elif menu == "📂 Bulk CSV":
 
             )
 
+            # =========================================
+            # READ CSV
+            # =========================================
+
             try:
 
                 df = pd.read_csv(
@@ -737,6 +687,10 @@ elif menu == "📂 Bulk CSV":
                 df.columns
 
             )
+
+            # =========================================
+            # ANALISIS
+            # =========================================
 
             if st.button("🚀 Mulai Analisis"):
 
@@ -798,7 +752,7 @@ elif menu == "📂 Bulk CSV":
         except Exception as e:
 
             st.error(
-                "❌ Gagal membaca file CSV"
+                "❌ Gagal membaca CSV"
             )
 
             st.code(str(e))
@@ -850,9 +804,9 @@ elif menu == "📈 Statistik":
 
         fig.update_layout(
 
-            paper_bgcolor="#0b1120",
+            paper_bgcolor="#050816",
 
-            plot_bgcolor="#0b1120",
+            plot_bgcolor="#050816",
 
             font_color="white",
 
