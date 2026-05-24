@@ -25,7 +25,7 @@ if "result_df" not in st.session_state:
     st.session_state.result_df = None
 
 # =====================================================
-# LOAD HUGGINGFACE MODEL
+# LOAD MODEL HUGGINGFACE
 # =====================================================
 
 @st.cache_resource
@@ -57,12 +57,16 @@ GLOBAL
 ===================================================== */
 
 html, body, [class*="css"]{
+
     background-color:#050816;
     color:white;
     font-family:'Segoe UI', sans-serif;
+
 }
 
-/* Hide Streamlit */
+/* =====================================================
+HIDE STREAMLIT
+===================================================== */
 
 #MainMenu{
     visibility:hidden;
@@ -81,7 +85,9 @@ SIDEBAR
 ===================================================== */
 
 [data-testid="stSidebar"]{
+
     background:#050816;
+
 }
 
 /* =====================================================
@@ -170,8 +176,6 @@ BUTTON
         #2563eb
     );
 
-    color:white;
-
 }
 
 /* =====================================================
@@ -181,9 +185,7 @@ TEXT AREA
 textarea{
 
     background:#0f172a !important;
-
     color:white !important;
-
     border-radius:15px !important;
 
 }
@@ -205,23 +207,80 @@ UPLOAD
 }
 
 /* =====================================================
-DATAFRAME
+METRIC CARD
 ===================================================== */
 
-[data-testid="stDataFrame"]{
+.metric-card{
 
-    border-radius:20px;
+    background: linear-gradient(
+        145deg,
+        rgba(17,24,39,0.95),
+        rgba(30,41,59,0.90)
+    );
 
-    overflow:hidden;
+    padding:25px;
+
+    border-radius:24px;
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.4);
+
+}
+
+.metric-title{
+
+    font-size:22px;
+    font-weight:600;
+    color:white;
+
+}
+
+.metric-value{
+
+    font-size:50px;
+    font-weight:bold;
+    color:white;
+
+    margin-top:20px;
 
 }
 
 /* =====================================================
-TEXT
+RESULT BOX
 ===================================================== */
 
-h1, h2, h3, h4{
-    color:white !important;
+.result-box{
+
+    padding:18px;
+
+    border-radius:16px;
+
+    margin-bottom:15px;
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:500;
+
+}
+
+.blue{
+    background:#1e3a5f;
+}
+
+.green{
+    background:#14532d;
+}
+
+.yellow{
+    background:#5b5a1c;
+}
+
+.red{
+    background:#5b2333;
 }
 
 </style>
@@ -237,34 +296,38 @@ def analyze_emotion(text):
 
         result = classifier(text)
 
-        label = result[0]["label"]
+        label = result[0]["label"].lower()
 
         score = result[0]["score"]
 
         confidence = f"{score * 100:.2f}%"
 
         # =============================================
-        # LABEL MAPPING
+        # MAPPING LABEL
         # =============================================
 
-        label_map = {
+        if label == "positive":
 
-            "LABEL_0": ("Negatif", "Marah"),
-            "LABEL_1": ("Netral", "Netral"),
-            "LABEL_2": ("Positif", "Senang")
+            sentiment = "Positif"
+            emotion = "Senang"
 
-        }
+        elif label == "negative":
 
-        sentiment, emotion = label_map.get(
+            sentiment = "Negatif"
+            emotion = "Marah"
 
-            label,
+        elif label == "neutral":
 
-            ("Netral", "Netral")
+            sentiment = "Netral"
+            emotion = "Netral"
 
-        )
+        else:
+
+            sentiment = label
+            emotion = label
 
         # =============================================
-        # SIMPLE SARCASM DETECTION
+        # SARCASM DETECTION
         # =============================================
 
         sarcasm = "Tidak"
@@ -296,8 +359,8 @@ def analyze_emotion(text):
 
         return (
 
-            "Netral",
-            "Netral",
+            "Error",
+            "Error",
             "0%",
             "Tidak"
 
@@ -335,16 +398,12 @@ with st.sidebar:
         color:#94a3b8;
         font-size:14px;
     ">
-    Dashboard Analisis Emosi & Sarkasme
+    Dashboard Analisis Emosi & Sentimen
     </p>
 
     </div>
 
     """, unsafe_allow_html=True)
-
-    # =============================================
-    # MENU
-    # =============================================
 
     menu = st.radio(
 
@@ -353,13 +412,9 @@ with st.sidebar:
         [
 
             "🏠 Dashboard",
-
             "✍️ Analisis Satuan",
-
             "📂 Bulk CSV",
-
             "📈 Statistik",
-
             "🕘 Riwayat"
 
         ]
@@ -368,17 +423,9 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # =============================================
-    # REFRESH BUTTON
-    # =============================================
-
     if st.button("🔄 Refresh Dashboard"):
 
         st.session_state.result_df = None
-
-        st.success(
-            "✅ Dashboard berhasil direset"
-        )
 
         st.rerun()
 
@@ -389,7 +436,7 @@ with st.sidebar:
 st.title("📊 Dashboard Analisis Emosi")
 
 st.caption(
-    "Prototype Analisis Emosi & Sarkasme berbasis Hugging Face"
+    "Prototype Analisis Emosi berbasis Hugging Face"
 )
 
 # =====================================================
@@ -440,38 +487,48 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
 
-    with st.container(border=True):
-
-        st.markdown("### 📊 Total")
-        st.markdown(f"# {total_data}")
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">📊 Total</div>
+        <div class="metric-value">{total_data}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
 
-    with st.container(border=True):
-
-        st.markdown("### 😊 Positif")
-        st.markdown(f"# {positif}")
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">😊 Positif</div>
+        <div class="metric-value">{positif}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
 
-    with st.container(border=True):
-
-        st.markdown("### 😡 Negatif")
-        st.markdown(f"# {negatif}")
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">😡 Negatif</div>
+        <div class="metric-value">{negatif}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col4:
 
-    with st.container(border=True):
-
-        st.markdown("### 😐 Netral")
-        st.markdown(f"# {netral}")
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">😐 Netral</div>
+        <div class="metric-value">{netral}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col5:
 
-    with st.container(border=True):
-
-        st.markdown("### 🧠 Sarkasme")
-        st.markdown(f"# {sarkasme}")
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">🧠 Sarkasme</div>
+        <div class="metric-value">{sarkasme}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # =====================================================
 # DASHBOARD
@@ -492,14 +549,12 @@ if menu == "🏠 Dashboard":
         result_df = st.session_state.result_df
 
         st.success(
-            "✅ Data bulk berhasil dianalisis"
+            "✅ Data berhasil dianalisis"
         )
 
         # =============================================
-        # DISTRIBUSI EMOSI
+        # CHART
         # =============================================
-
-        st.subheader("📈 Distribusi Emosi")
 
         emotion_count = (
             result_df["Emosi"]
@@ -522,7 +577,7 @@ if menu == "🏠 Dashboard":
 
             text="Jumlah",
 
-            title="Distribusi Emosi",
+            color="Emosi",
 
             template="plotly_dark"
 
@@ -589,13 +644,29 @@ elif menu == "✍️ Analisis Satuan":
 
         st.subheader("📌 Hasil")
 
-        st.info(f"😡 Emosi : {emotion}")
+        st.markdown(f"""
+        <div class="result-box blue">
+        😡 Emosi : {emotion}
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.success(f"💬 Sentimen : {sentiment}")
+        st.markdown(f"""
+        <div class="result-box green">
+        💬 Sentimen : {sentiment}
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.warning(f"🎯 Confidence : {confidence}")
+        st.markdown(f"""
+        <div class="result-box yellow">
+        🎯 Confidence : {confidence}
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.error(f"🧠 Sarkasme : {sarcasm}")
+        st.markdown(f"""
+        <div class="result-box red">
+        🧠 Sarkasme : {sarcasm}
+        </div>
+        """, unsafe_allow_html=True)
 
 # =====================================================
 # BULK CSV
@@ -617,17 +688,11 @@ elif menu == "📂 Bulk CSV":
 
         try:
 
-            # =========================================
-            # READ RAW FILE
-            # =========================================
-
             raw_data = uploaded_file.read()
 
             detected = chardet.detect(raw_data)
 
             encoding = detected["encoding"]
-
-            st.info(f"Encoding : {encoding}")
 
             decoded_data = raw_data.decode(
 
@@ -636,10 +701,6 @@ elif menu == "📂 Bulk CSV":
                 errors="ignore"
 
             )
-
-            # =========================================
-            # READ CSV
-            # =========================================
 
             try:
 
@@ -676,10 +737,6 @@ elif menu == "📂 Bulk CSV":
                 df.columns
 
             )
-
-            # =========================================
-            # ANALISIS
-            # =========================================
 
             if st.button("🚀 Mulai Analisis"):
 
@@ -719,64 +776,10 @@ elif menu == "📂 Bulk CSV":
                     "✅ Analisis selesai"
                 )
 
-                # =====================================
-                # DISTRIBUSI EMOSI
-                # =====================================
-
-                emotion_count = (
-                    result_df["Emosi"]
-                    .value_counts()
-                    .reset_index()
-                )
-
-                emotion_count.columns = [
-                    "Emosi",
-                    "Jumlah"
-                ]
-
-                fig = px.bar(
-
-                    emotion_count,
-
-                    x="Emosi",
-
-                    y="Jumlah",
-
-                    text="Jumlah",
-
-                    title="Distribusi Emosi",
-
-                    template="plotly_dark"
-
-                )
-
-                fig.update_layout(
-
-                    paper_bgcolor="#0b1120",
-
-                    plot_bgcolor="#0b1120",
-
-                    font_color="white",
-
-                    height=500
-
-                )
-
-                st.plotly_chart(
-                    fig,
-                    use_container_width=True
-                )
-
-                st.subheader("📋 Hasil Analisis")
-
                 st.dataframe(
                     result_df,
                     use_container_width=True
                 )
-
-                # =====================================
-                # DOWNLOAD
-                # =====================================
 
                 csv = result_df.to_csv(index=False)
 
@@ -839,7 +842,7 @@ elif menu == "📈 Statistik":
 
             text="Jumlah",
 
-            title="Statistik Emosi",
+            color="Emosi",
 
             template="plotly_dark"
 
