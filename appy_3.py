@@ -136,50 +136,194 @@ elif menu == "Bulk CSV":
 
     st.title("📂 Bulk CSV")
 
-    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+    uploaded_file = st.file_uploader(
+        "Upload CSV / XLSX",
+        type=["csv", "xlsx"]
+    )
 
     if uploaded_file:
 
-        df = pd.read_csv(uploaded_file)
+        try:
 
-        st.dataframe(df.head())
+            # ==========================
+            # LOAD FILE
+            # ==========================
 
-        text_col = st.selectbox("Pilih Kolom Ulasan", df.columns)
+            if uploaded_file.name.lower().endswith(".xlsx"):
 
-        if st.button("🚀 Proses Analisis"):
+                df = pd.read_excel(uploaded_file)
 
-            sentiments = []
-            emotions = []
-            scores = []
+            else:
 
-            progress = st.progress(0)
+                encodings = [
+                    "latin1",
+                    "cp1252",
+                    "ISO-8859-1",
+                    "utf-8",
+                    "utf-8-sig"
+                ]
 
-            total_rows = len(df)
+                separators = [";", ","]
 
-            for idx, text in enumerate(df[text_col]):
-                sentiment, score = predict_sentiment(str(text))
-                emotion = predict_emotion(str(text))
+                df = None
 
-                sentiments.append(sentiment)
-                emotions.append(emotion)
-                scores.append(score)
+                for enc in encodings:
 
-                progress.progress((idx+1)/total_rows)
+                    for sep in separators:
 
-            df["sentiment"] = sentiments
-            df["emotion"] = emotions
-            df["score"] = scores
+                        try:
 
-            st.session_state.bulk_result = df
+                            uploaded_file.seek(0)
 
-            st.session_state.bulk_history.append({
-                "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "rows": len(df)
-            })
+                            temp_df = pd.read_csv(
+                                uploaded_file,
+                                encoding=enc,
+                                sep=sep,
+                                engine="python",
+                                on_bad_lines="skip"
+                            )
 
-            st.success("Analisis selesai")
+                            # valid jika kolom lebih dari 1
+                            if len(temp_df.columns) > 1:
+                                df = temp_df
+                                break
 
-            st.dataframe(df)
+                        except Exception:
+                            continue
+
+                    if df is not None:
+                        break
+
+                if df is None:
+                    st.error(
+                        "File CSV tidak dapat dibaca."
+                    )
+                    st.stop()
+
+            # ==========================
+            # HAPUS KOLOM KOSONG
+            # ==========================
+
+            df = df.loc[
+                :,
+                ~df.columns.astype(str).str.contains(
+                    "^Unnamed"
+                )
+            ]
+
+            st.success(
+                f"Dataset berhasil dibaca ({len(df)} baris)"
+            )
+
+            st.dataframe(df.head())
+
+            # ==========================
+            # AUTO PILIH KOLOM CONTENT
+            # ==========================
+
+            if "content" in df.columns:
+
+                text_col = "content"
+
+                st.info(
+                    f"Menggunakan kolom: {text_col}"
+                )
+
+            else:
+
+                text_col = st.selectbox(
+                    "Pilih Kolom Ulasan",
+                    df.columns
+                )
+
+            # ==========================
+            # PROSES ANALISIS
+            # ==========================
+
+            if st.button("🚀 Proses Analisis"):
+
+                sentiments = []
+                emotions = []
+                scores = []
+
+                progress = st.progress(0)
+
+                total_rows = len(df)
+
+                for idx, text in enumerate(
+                    df[text_col]
+                ):
+
+                    sentiment, score = (
+                        predict_sentiment(
+                            str(text)
+                        )
+                    )
+
+                    emotion = (
+                        predict_emotion(
+                            str(text)
+                        )
+                    )
+
+                    sentiments.append(
+                        sentiment
+                    )
+
+                    emotions.append(
+                        emotion
+                    )
+
+                    scores.append(
+                        score
+                    )
+
+                    progress.progress(
+                        (idx + 1)
+                        / total_rows
+                    )
+
+                df["sentiment"] = sentiments
+                df["emotion"] = emotions
+                df["score"] = scores
+
+                st.session_state.bulk_result = df
+
+                st.session_state.bulk_history.append({
+                    "datetime":
+                    datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
+                    "rows":
+                    len(df)
+                })
+
+                st.success(
+                    "✅ Analisis selesai"
+                )
+
+                st.dataframe(
+                    df,
+                    use_container_width=True
+                )
+
+                st.download_button(
+                    "⬇ Download Hasil",
+                    data=df.to_csv(
+                        index=False
+                    ).encode(
+                        "utf-8-sig"
+                    ),
+                    file_name=
+                    "hasil_analisis.csv",
+                    mime="text/csv"
+                )
+
+        except Exception as e:
+
+            st.error(
+                f"Terjadi kesalahan: {e}"
+            )
 
 # ================= STATISTIK =================
 elif menu == "Statistik":
