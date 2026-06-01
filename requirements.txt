@@ -1,9 +1,9 @@
-streamlit==1.45.1
-transformers==4.52.4
-torch
+streamlit
 pandas
-scikit-learn
-sentencepiece
-safetensors
-chardet
+numpy
 plotly
+torch
+transformers
+streamlit-option-menu
+sentencepiece
+accelerate
