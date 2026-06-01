@@ -131,6 +131,12 @@ elif menu == "Analisis Satuan":
 
         st.text_area("Teks", result["text"], disabled=True)
 
+  if st.button("🔄 Refresh Dashboard"):
+            st.session_state.bulk_result = pd.DataFrame()
+            st.session_state.bulk_history = []
+            st.rerun()
+
+
 # ================= BULK CSV =================
 elif menu == "Bulk CSV":
 
