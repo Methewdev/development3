@@ -99,38 +99,28 @@ EMOTION_MAP = {
 # FUNCTIONS
 # =====================================================
 
-def predict_sentiment(text):
-
-    result = sentiment_pipe(text)[0]
-
-    label = result["label"].lower()
-
-    score = float(result["score"])
-
-    sentiment_map = {
-        "positive": "😊 Positif",
-        "negative": "😡 Negatif",
-        "neutral": "😐 Netral"
-    }
-
-    return sentiment_map.get(label, label), score
-
-
 def predict_emotion(text):
 
     result = emotion_pipe(text)[0]
 
     raw_label = result["label"]
-
     score = float(result["score"])
 
-    emotion = EMOTION_MAP.get(
+    # Mapping manual
+    emotion_map = {
+        "LABEL_0": "😡 Anger",
+        "LABEL_1": "😨 Fear",
+        "LABEL_2": "😊 Joy",
+        "LABEL_3": "😢 Sadness",
+        "LABEL_4": "😐 Neutral"
+    }
+
+    emotion_label = emotion_map.get(
         raw_label,
         raw_label
     )
 
-    return emotion, score, raw_label
-
+    return emotion_label, score
 # =====================================================
 # SIDEBAR
 # =====================================================
