@@ -131,7 +131,7 @@ elif menu == "Analisis Satuan":
 
         st.text_area("Teks", result["text"], disabled=True)
 
-  if st.button("🔄 Refresh Dashboard"):
+  if st.button("🔄 Refresh Analisis Satuan"):
             st.session_state.bulk_result = pd.DataFrame()
             st.session_state.bulk_history = []
             st.rerun()
