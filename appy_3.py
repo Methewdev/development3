@@ -92,11 +92,11 @@ except:
 
 
 emotion_labels = {
-    0:"Marah",
-    1:"Takut",
-    2:"Bahagia",
-    3:"Suka",
-    4:"Sedih"
+    0:"anger",
+    1:"fear",
+    2:"happy",
+    3:"love",
+    4:"sadness"
 }
 
 # =====================================================
