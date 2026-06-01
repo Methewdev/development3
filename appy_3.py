@@ -571,13 +571,9 @@ elif menu == "✍️ Analisis Satuan":
     with left:
 
         text = st.text_area(
-
             "✍️ Input Ulasan",
-
             height=250,
-
             placeholder="Masukkan ulasan nasabah..."
-
         )
 
         analyze = st.button(
@@ -591,13 +587,15 @@ elif menu == "✍️ Analisis Satuan":
         confidence = "-"
         sarcasm = "-"
 
-    if analyze and text != "":
+        if analyze and text != "":
 
-    result = classifier(text)
+            # DEBUG
+            result = classifier(text)
 
-    st.write(result)
+            st.write("DEBUG RESULT")
+            st.json(result)
 
-    emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
+            emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
         st.subheader("📌 Hasil")
 
@@ -624,7 +622,6 @@ elif menu == "✍️ Analisis Satuan":
         🧠 Sarkasme : {sarcasm}
         </div>
         """, unsafe_allow_html=True)
-
 # =====================================================
 # BULK CSV
 # =====================================================
