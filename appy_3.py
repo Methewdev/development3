@@ -35,9 +35,9 @@ def load_model():
 
         task="text-classification",
 
-        model="envidevelopment/model3",
+        model="envidevelopment/modeltesis",
 
-        tokenizer="envidevelopment/model3"
+        tokenizer="envidevelopment/modeltesis"
 
     )
 
