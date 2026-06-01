@@ -379,3 +379,135 @@ elif menu == "Riwayat":
     else:
         history_df = pd.DataFrame(st.session_state.bulk_history)
         st.dataframe(history_df,use_container_width=True)
+
+emotion_counts = (
+    df["emotion"]
+    .value_counts()
+    .to_dict()
+)
+
+happy = emotion_counts.get("happy",0)
+anger = emotion_counts.get("anger",0)
+fear = emotion_counts.get("fear",0)
+sadness = emotion_counts.get("sadness",0)
+love = emotion_counts.get("love",0)
+
+st.markdown("### 😊 Ringkasan Emosi")
+
+e1,e2,e3,e4,e5 = st.columns(5)
+
+with e1:
+    st.metric("😊 Happy", happy)
+
+with e2:
+    st.metric("😡 Anger", anger)
+
+with e3:
+    st.metric("😨 Fear", fear)
+
+with e4:
+    st.metric("😢 Sadness", sadness)
+
+with e5:
+    st.metric("❤️ Love", love)
+emotion_df = (
+    df["emotion"]
+    .value_counts()
+    .reset_index()
+)
+
+emotion_df.columns = [
+    "emotion",
+    "jumlah"
+]
+col1,col2 = st.columns(2)
+
+with col1:
+
+    fig_sentiment = px.bar(
+        sentiment_count,
+        x="sentiment",
+        y="jumlah",
+        title="Distribusi Sentimen",
+        text_auto=True
+    )
+
+    st.plotly_chart(
+        fig_sentiment,
+        use_container_width=True
+    )
+
+with col2:
+
+    fig_emotion = px.pie(
+        emotion_df,
+        names="emotion",
+        values="jumlah",
+        hole=0.65,
+        title="Distribusi Emosi"
+    )
+
+    st.plotly_chart(
+        fig_emotion,
+        use_container_width=True
+    )
+    cross = pd.crosstab(
+    df["sentiment"],
+    df["emotion"]
+)
+
+heatmap = px.imshow(
+    cross,
+    text_auto=True,
+    aspect="auto",
+    title="Hubungan Sentimen dan Emosi"
+)
+
+st.plotly_chart(
+    heatmap,
+    use_container_width=True
+)
+dominant_emotion = (
+    df["emotion"]
+    .value_counts()
+    .idxmax()
+)
+
+dominant_sentiment = (
+    df["sentiment"]
+    .value_counts()
+    .idxmax()
+)
+
+col1,col2 = st.columns(2)
+
+with col1:
+
+    st.success(
+        f"""
+        😊 Emosi dominan:
+        {dominant_emotion.upper()}
+        """
+    )
+
+with col2:
+
+    st.info(
+        f"""
+        📊 Sentimen dominan:
+        {dominant_sentiment.upper()}
+        """
+    )
+    st.markdown("""
+<style>
+
+.metric-card{
+background:#111827;
+padding:20px;
+border-radius:15px;
+border:1px solid #1f2937;
+box-shadow:0 0 20px rgba(0,0,0,0.2);
+}
+
+</style>
+""", unsafe_allow_html=True)
