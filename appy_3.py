@@ -1,107 +1,18 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import torch
-from datetime import datetime
-from pathlib import Path
-
-from transformers import (
-    pipeline,
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
+from datetime import datetime, date
 
 # =====================================================
-# PAGE CONFIG
+# CONFIG
 # =====================================================
 
 st.set_page_config(
     page_title="Emotion AI Dashboard",
     page_icon="🧠",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
-
-# =====================================================
-# CUSTOM CSS
-# =====================================================
-
-st.markdown("""
-<style>
-
-[data-testid="stAppViewContainer"]{
-    background-color:#030B1B;
-}
-
-[data-testid="stSidebar"]{
-    background-color:#111827;
-}
-
-div[data-testid="metric-container"]{
-    background:#132447;
-    border-radius:15px;
-    padding:15px;
-    border:1px solid #274472;
-}
-
-.stButton>button{
-    width:100%;
-    border-radius:10px;
-    height:50px;
-    font-weight:bold;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =====================================================
-# LOAD SENTIMENT MODEL
-# =====================================================
-
-@st.cache_resource
-def load_sentiment_model():
-
-    return pipeline(
-        "text-classification",
-        model="w11wo/indonesian-roberta-base-sentiment-classifier",
-        truncation=True
-    )
-
-# =====================================================
-# LOAD EMOTION MODEL
-# =====================================================
-
-@st.cache_resource
-def load_emotion_model():
-
-    MODEL_PATH = "models/emotion_model"
-
-    if not Path(MODEL_PATH).exists():
-        return None, None
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        MODEL_PATH
-    )
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_PATH
-    )
-
-    return tokenizer, model
-
-
-sentiment_model = load_sentiment_model()
-
-tokenizer, emotion_model = load_emotion_model()
-
-emotion_ready = emotion_model is not None
-
-emotion_labels = {
-    0:"anger",
-    1:"fear",
-    2:"happy",
-    3:"love",
-    4:"sadness"
-}
 
 # =====================================================
 # SESSION
@@ -111,55 +22,133 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 # =====================================================
-# FUNCTIONS
+# CSS
+# =====================================================
+
+st.markdown("""
+<style>
+
+.stApp{
+    background:#050816;
+}
+
+[data-testid="stSidebar"]{
+    background:linear-gradient(
+    180deg,
+    #0F172A 0%,
+    #111827 100%);
+}
+
+h1,h2,h3,h4,h5,h6,p,label{
+    color:white !important;
+}
+
+div[data-testid="metric-container"]{
+    background:linear-gradient(
+    135deg,
+    #111827,
+    #1E293B);
+
+    border-radius:18px;
+    padding:15px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.stTextArea textarea{
+    background:#111827 !important;
+    color:white !important;
+}
+
+.card{
+    background:linear-gradient(
+    135deg,
+    #111827,
+    #1E293B);
+
+    border-radius:18px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.big-title{
+    font-size:32px;
+    font-weight:700;
+    color:white;
+}
+
+.sub-title{
+    color:#94A3B8;
+    font-size:14px;
+}
+
+div.stButton > button{
+    background:
+    linear-gradient(
+    90deg,
+    #7C3AED,
+    #EC4899);
+
+    color:white;
+    border:none;
+    border-radius:12px;
+    height:50px;
+    width:100%;
+    font-weight:bold;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# DUMMY MODEL
+# GANTI DENGAN MODEL SENTIMEN & EMOSI ANDA
 # =====================================================
 
 def predict_sentiment(text):
 
-    result = sentiment_model(text)[0]
+    text = text.lower()
 
-    return (
-        result["label"],
-        float(result["score"])
-    )
+    if any(word in text for word in [
+        "bagus",
+        "mantap",
+        "cepat",
+        "baik",
+        "memuaskan"
+    ]):
+        return "positive",0.98
+
+    elif any(word in text for word in [
+        "lambat",
+        "buruk",
+        "jelek",
+        "error",
+        "gagal"
+    ]):
+        return "negative",0.99
+
+    else:
+        return "neutral",0.95
 
 
 def predict_emotion(text):
 
-    if not emotion_ready:
-        return "Model Belum Tersedia"
+    text = text.lower()
 
-    inputs = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        max_length=256
-    )
+    if "marah" in text or "kesal" in text:
+        return "anger"
 
-    with torch.no_grad():
+    elif "takut" in text:
+        return "fear"
 
-        outputs = emotion_model(**inputs)
+    elif "senang" in text or "bagus" in text:
+        return "happy"
 
-        pred = torch.argmax(
-            outputs.logits,
-            dim=1
-        ).item()
+    elif "cinta" in text:
+        return "love"
 
-    return emotion_labels.get(
-        pred,
-        "unknown"
-    )
+    else:
+        return "sadness"
 
-
-def save_history(text,sentiment,emotion,score):
-
-    st.session_state.history.append({
-        "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "text": text,
-        "sentiment": sentiment,
-        "emotion": emotion,
-        "score": score
-    })
 
 # =====================================================
 # SIDEBAR
@@ -167,10 +156,15 @@ def save_history(text,sentiment,emotion,score):
 
 with st.sidebar:
 
-    st.markdown("# 🧠 Emotion AI")
+    st.image(
+        "https://cdn-icons-png.flaticon.com/512/2103/2103832.png",
+        width=90
+    )
+
+    st.markdown("### MENU")
 
     menu = st.radio(
-        "MENU",
+        "",
         [
             "Dashboard",
             "Analisis Satuan",
@@ -186,13 +180,7 @@ with st.sidebar:
 
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard Analisis Emosi")
-
-    history = pd.DataFrame(
-        st.session_state.history
-    )
-
-    total = len(history)
+    total = len(st.session_state.history)
 
     positive = 0
     negative = 0
@@ -200,91 +188,211 @@ if menu == "Dashboard":
 
     if total > 0:
 
+        df = pd.DataFrame(
+            st.session_state.history
+        )
+
         positive = len(
-            history[
-                history["sentiment"].str.lower()=="positive"
-            ]
+            df[df["sentiment"]=="positive"]
         )
 
         negative = len(
-            history[
-                history["sentiment"].str.lower()=="negative"
-            ]
+            df[df["sentiment"]=="negative"]
         )
 
         neutral = len(
-            history[
-                history["sentiment"].str.lower()=="neutral"
-            ]
+            df[df["sentiment"]=="neutral"]
         )
 
-    c1,c2,c3,c4 = st.columns(4)
-
-    c1.metric("Total",total)
-    c2.metric("😊 Positif",positive)
-    c3.metric("😡 Negatif",negative)
-    c4.metric("😐 Netral",neutral)
-
-    st.divider()
-
-    col1,col2 = st.columns([2,1])
+    col1,col2 = st.columns([4,1])
 
     with col1:
 
-        text = st.text_area(
-            "Masukkan Ulasan",
-            height=250
+        st.markdown("""
+        <div class='big-title'>
+        Selamat datang kembali, Admin 👋
+        </div>
+
+        <div class='sub-title'>
+        Pantau dan analisis sentimen dari data ulasan dengan mudah
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.date_input("", value=date.today())
+
+    st.write("")
+
+    c1,c2,c3,c4 = st.columns(4)
+
+    c1.metric("📊 Total Analisis", total)
+    c2.metric("😊 Positif", positive)
+    c3.metric("😡 Negatif", negative)
+    c4.metric("😐 Netral", neutral)
+
+    st.write("")
+
+    # =====================================
+    # DASHBOARD KOSONG
+    # =====================================
+
+    if total == 0:
+
+        st.warning(
+            "Belum ada data analisis. "
+            "Silakan lakukan analisis terlebih dahulu."
         )
+
+        col1,col2 = st.columns([2,1])
+
+        with col1:
+
+            review = st.text_area(
+                "Masukkan Ulasan",
+                height=180,
+                placeholder="Contoh: Pelayanan sangat baik dan respons cepat!"
+            )
+
+        with col2:
+
+            st.markdown("""
+            <div class='card'>
+            <h3>Insights</h3>
+
+            Belum ada data untuk ditampilkan.
+
+            Mulai analisis untuk melihat insight.
+            </div>
+            """, unsafe_allow_html=True)
+
+    # =====================================
+    # DASHBOARD ADA DATA
+    # =====================================
+
+    else:
+
+        left,right = st.columns([2,1])
+
+        with left:
+
+            sentiment_count = (
+                df["sentiment"]
+                .value_counts()
+                .reset_index()
+            )
+
+            sentiment_count.columns = [
+                "sentiment",
+                "jumlah"
+            ]
+
+            fig = px.bar(
+                sentiment_count,
+                x="sentiment",
+                y="jumlah",
+                title="Tren Sentimen"
+            )
+
+            fig.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="#111827",
+                plot_bgcolor="#111827"
+            )
+
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
+
+        with right:
+
+            fig2 = px.pie(
+                sentiment_count,
+                names="sentiment",
+                values="jumlah",
+                hole=0.7
+            )
+
+            fig2.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="#111827"
+            )
+
+            st.plotly_chart(
+                fig2,
+                use_container_width=True
+            )
+
+        st.write("")
+
+        col1,col2 = st.columns([2,1])
+
+        with col1:
+
+            review = st.text_area(
+                "Masukkan Ulasan",
+                height=180
+            )
+
+        with col2:
+
+            positive_pct = round(
+                positive/total*100,
+                2
+            )
+
+            st.markdown(f"""
+            <div class='card'>
+            <h3>Insights</h3>
+
+            Mayoritas ulasan bersifat
+            <b>Positif ({positive_pct}%)</b>
+
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.write("")
+
+    col1,col2 = st.columns(2)
+
+    with col1:
 
         if st.button("🔍 Analisis Sekarang"):
 
-            if text.strip():
+            if review:
 
-                with st.spinner("Menganalisis..."):
+                sentiment,score = predict_sentiment(review)
 
-                    sentiment, score = predict_sentiment(text)
+                emotion = predict_emotion(review)
 
-                    emotion = predict_emotion(text)
+                st.session_state.history.append({
 
-                    save_history(
-                        text,
-                        sentiment,
-                        emotion,
-                        score
-                    )
+                    "datetime":
+                    datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
 
-                st.success("Analisis selesai")
+                    "text":review,
+                    "sentiment":sentiment,
+                    "emotion":emotion,
+                    "score":score
+                })
+
+                st.success(
+                    "Analisis berhasil"
+                )
+
+                st.rerun()
 
     with col2:
 
-        st.subheader("📌 Hasil")
+        if st.button(
+            "🔄 Refresh Dashboard"
+        ):
 
-        if len(st.session_state.history):
+            st.session_state.history = []
 
-            last = st.session_state.history[-1]
-
-            st.metric(
-                "Sentimen",
-                last["sentiment"]
-            )
-
-            st.metric(
-                "Emosi",
-                last["emotion"]
-            )
-
-            st.metric(
-                "Confidence",
-                f"{last['score']*100:.2f}%"
-            )
-
-    st.divider()
-
-    if st.button("🔄 Refresh Dashboard"):
-
-        st.session_state.history = []
-
-        st.rerun()
+            st.rerun()
 
 # =====================================================
 # ANALISIS SATUAN
@@ -295,35 +403,28 @@ elif menu == "Analisis Satuan":
     st.title("📝 Analisis Satuan")
 
     text = st.text_area(
-        "Masukkan Teks",
+        "Masukkan Ulasan",
         height=250
     )
 
     if st.button("Analisis"):
 
-        if text.strip():
+        if text:
 
-            sentiment, score = predict_sentiment(text)
+            sentiment,score = predict_sentiment(text)
 
             emotion = predict_emotion(text)
-
-            save_history(
-                text,
-                sentiment,
-                emotion,
-                score
-            )
 
             c1,c2,c3 = st.columns(3)
 
             c1.metric(
                 "Sentimen",
-                sentiment
+                sentiment.upper()
             )
 
             c2.metric(
                 "Emosi",
-                emotion
+                emotion.upper()
             )
 
             c3.metric(
@@ -339,64 +440,20 @@ elif menu == "Bulk CSV":
 
     st.title("📂 Bulk CSV")
 
-    uploaded = st.file_uploader(
+    file = st.file_uploader(
         "Upload CSV",
         type=["csv"]
     )
 
-    if uploaded:
+    if file:
 
-        df = pd.read_csv(uploaded)
+        df = pd.read_csv(file)
 
         st.dataframe(df.head())
 
-        text_col = st.selectbox(
-            "Pilih Kolom Teks",
-            df.columns
+        st.success(
+            f"{len(df)} data berhasil dibaca"
         )
-
-        if st.button("🚀 Proses"):
-
-            sentiments = []
-            emotions = []
-            scores = []
-
-            progress = st.progress(0)
-
-            total_rows = len(df)
-
-            for i,text in enumerate(df[text_col]):
-
-                sentiment, score = predict_sentiment(
-                    str(text)
-                )
-
-                emotion = predict_emotion(
-                    str(text)
-                )
-
-                sentiments.append(sentiment)
-                emotions.append(emotion)
-                scores.append(score)
-
-                progress.progress(
-                    (i+1)/total_rows
-                )
-
-            df["sentiment"] = sentiments
-            df["emotion"] = emotions
-            df["score"] = scores
-
-            st.success("Selesai")
-
-            st.dataframe(df)
-
-            st.download_button(
-                "⬇ Download CSV",
-                df.to_csv(index=False),
-                "hasil_analisis.csv",
-                "text/csv"
-            )
 
 # =====================================================
 # STATISTIK
@@ -408,7 +465,9 @@ elif menu == "Statistik":
 
     if len(st.session_state.history)==0:
 
-        st.warning("Belum ada data")
+        st.warning(
+            "Belum ada data statistik"
+        )
 
     else:
 
@@ -416,34 +475,20 @@ elif menu == "Statistik":
             st.session_state.history
         )
 
-        col1,col2 = st.columns(2)
+        fig = px.histogram(
+            df,
+            x="emotion",
+            color="emotion"
+        )
 
-        with col1:
+        fig.update_layout(
+            template="plotly_dark"
+        )
 
-            fig1 = px.pie(
-                df,
-                names="sentiment",
-                hole=0.4,
-                title="Distribusi Sentimen"
-            )
-
-            st.plotly_chart(
-                fig1,
-                use_container_width=True
-            )
-
-        with col2:
-
-            fig2 = px.histogram(
-                df,
-                x="emotion",
-                title="Distribusi Emosi"
-            )
-
-            st.plotly_chart(
-                fig2,
-                use_container_width=True
-            )
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
 # =====================================================
 # RIWAYAT
@@ -473,12 +518,5 @@ elif menu == "Riwayat":
         st.download_button(
             "⬇ Download Riwayat",
             df.to_csv(index=False),
-            "riwayat.csv",
-            "text/csv"
+            file_name="riwayat.csv"
         )
-
-        if st.button("🗑 Hapus Riwayat"):
-
-            st.session_state.history = []
-
-            st.rerun()
