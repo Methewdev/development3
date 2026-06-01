@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -139,38 +140,7 @@ elif menu == "Bulk CSV":
 
     if uploaded_file:
 
-       try:
-    uploaded_file.seek(0)
-    df = pd.read_csv(
-        uploaded_file,
-        encoding="utf-8",
-        on_bad_lines="skip"
-    )
-
-except Exception:
-
-    try:
-        uploaded_file.seek(0)
-        df = pd.read_csv(
-            uploaded_file,
-            encoding="latin1",
-            on_bad_lines="skip"
-        )
-
-    except Exception:
-
-        try:
-            uploaded_file.seek(0)
-            df = pd.read_csv(
-                uploaded_file,
-                encoding="cp1252",
-                on_bad_lines="skip"
-            )
-
-        except Exception:
-
-            uploaded_file.seek(0)
-            df = pd.read_excel(uploaded_file)
+        df = pd.read_csv(uploaded_file)
 
         st.dataframe(df.head())
 
