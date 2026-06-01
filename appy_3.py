@@ -37,7 +37,7 @@ def load_model():
 
         model="envidevelopment/emotion_model",
 
-        tokenizer="envidevelopment/emotion_model
+        tokenizer="envidevelopment/emotion_model"
 
     )
 
