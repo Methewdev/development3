@@ -106,10 +106,34 @@ elif menu == "Analisis Satuan":
 
     st.title("📝 Analisis Satuan")
 
-    text = st.text_area("Masukkan Ulasan", height=200)
+    col_btn1, col_btn2 = st.columns([1,1])
 
-    if st.button("🔍 Analisis"):
-        if text.strip():
+    with col_btn1:
+        analyze_btn = st.button("🔍 Analisis")
+
+    with col_btn2:
+        refresh_btn = st.button("🔄 Refresh Analisis")
+
+    if refresh_btn:
+        st.session_state.single_result = None
+        st.rerun()
+
+    text = st.text_area(
+        "Masukkan Ulasan",
+        height=200,
+        placeholder="Contoh: Aplikasi sangat membantu dan mudah digunakan..."
+    )
+
+    if analyze_btn:
+
+        if not text.strip():
+
+            st.warning(
+                "Silakan masukkan ulasan terlebih dahulu."
+            )
+
+        else:
+
             sentiment, score = predict_sentiment(text)
             emotion = predict_emotion(text)
 
@@ -121,21 +145,38 @@ elif menu == "Analisis Satuan":
             }
 
     if st.session_state.single_result:
+
         result = st.session_state.single_result
+
+        st.markdown("---")
+        st.subheader("📋 Hasil Analisis")
 
         c1,c2,c3 = st.columns(3)
 
-        c1.metric("Sentimen", result["sentiment"].upper())
-        c2.metric("Emosi", result["emotion"].upper())
-        c3.metric("Confidence", f"{result['score']*100:.2f}%")
+        with c1:
+            st.metric(
+                "Sentimen",
+                result["sentiment"].upper()
+            )
 
-        st.text_area("Teks", result["text"], disabled=True)
+        with c2:
+            st.metric(
+                "Emosi",
+                result["emotion"].upper()
+            )
 
-  if st.button("🔄 Refresh Analisis Satuan"):
-            st.session_state.bulk_result = pd.DataFrame()
-            st.session_state.bulk_history = []
-            st.rerun()
+        with c3:
+            st.metric(
+                "Confidence",
+                f"{result['score']*100:.2f}%"
+            )
 
+        st.text_area(
+            "Teks Ulasan",
+            result["text"],
+            height=150,
+            disabled=True
+        )
 
 # ================= BULK CSV =================
 elif menu == "Bulk CSV":
