@@ -136,219 +136,51 @@ elif menu == "Bulk CSV":
 
     st.title("📂 Bulk CSV")
 
-    uploaded_file = st.file_uploader(
-        "Upload CSV / XLSX",
-        type=["csv", "xlsx"]
-    )
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 
     if uploaded_file:
 
-        try:
+        df = pd.read_csv(uploaded_file)
 
-            # =========================
-            # LOAD FILE OTOMATIS
-            # =========================
+        st.dataframe(df.head())
 
-            if uploaded_file.name.endswith(".xlsx"):
+        text_col = st.selectbox("Pilih Kolom Ulasan", df.columns)
 
-                df = pd.read_excel(
-                    uploaded_file
-                )
+        if st.button("🚀 Proses Analisis"):
 
-            else:
+            sentiments = []
+            emotions = []
+            scores = []
 
-                df = None
+            progress = st.progress(0)
 
-                encodings = [
-                    "latin1",
-                    "cp1252",
-                    "ISO-8859-1",
-                    "utf-8",
-                    "utf-8-sig"
-                ]
+            total_rows = len(df)
 
-                separators = [
-                    ";",
-                    ","
-                ]
+            for idx, text in enumerate(df[text_col]):
+                sentiment, score = predict_sentiment(str(text))
+                emotion = predict_emotion(str(text))
 
-                for enc in encodings:
+                sentiments.append(sentiment)
+                emotions.append(emotion)
+                scores.append(score)
 
-                    for sep in separators:
+                progress.progress((idx+1)/total_rows)
 
-                        try:
+            df["sentiment"] = sentiments
+            df["emotion"] = emotions
+            df["score"] = scores
 
-                            uploaded_file.seek(0)
+            st.session_state.bulk_result = df
 
-                            temp_df = pd.read_csv(
-                                uploaded_file,
-                                encoding=enc,
-                                sep=sep,
-                                engine="python",
-                                on_bad_lines="skip"
-                            )
+            st.session_state.bulk_history.append({
+                "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "rows": len(df)
+            })
 
-                            if len(temp_df.columns) > 1:
+            st.success("Analisis selesai")
 
-                                df = temp_df
+            st.dataframe(df)
 
-                                break
-
-                        except Exception:
-                            continue
-
-                    if df is not None:
-                        break
-
-                if df is None:
-
-                    st.error(
-                        "❌ File tidak dapat dibaca"
-                    )
-
-                    st.stop()
-
-            # =========================
-            # HAPUS KOLOM KOSONG
-            # =========================
-
-            df = df.loc[
-                :,
-                ~df.columns.astype(str)
-                .str.contains("^Unnamed")
-            ]
-
-            st.success(
-                f"✅ Dataset berhasil dibaca ({len(df)} baris)"
-            )
-
-            st.dataframe(
-                df.head(),
-                use_container_width=True
-            )
-
-            # =========================
-            # AUTO DETECT KOLOM ULASAN
-            # =========================
-
-            possible_cols = [
-                "content",
-                "review",
-                "ulasan",
-                "comment",
-                "text"
-            ]
-
-            text_col = None
-
-            for col in possible_cols:
-
-                if col in df.columns:
-
-                    text_col = col
-                    break
-
-            if text_col is None:
-
-                text_col = st.selectbox(
-                    "Pilih Kolom Ulasan",
-                    df.columns
-                )
-
-            else:
-
-                st.info(
-                    f"Menggunakan kolom: {text_col}"
-                )
-
-            # =========================
-            # PROSES ANALISIS
-            # =========================
-
-            if st.button("🚀 Proses Analisis"):
-
-                sentiments = []
-                emotions = []
-                scores = []
-
-                progress = st.progress(0)
-
-                total_rows = len(df)
-
-                for idx, text in enumerate(
-                    df[text_col]
-                ):
-
-                    sentiment, score = (
-                        predict_sentiment(
-                            str(text)
-                        )
-                    )
-
-                    emotion = (
-                        predict_emotion(
-                            str(text)
-                        )
-                    )
-
-                    sentiments.append(
-                        sentiment
-                    )
-
-                    emotions.append(
-                        emotion
-                    )
-
-                    scores.append(
-                        score
-                    )
-
-                    progress.progress(
-                        (idx + 1)
-                        / total_rows
-                    )
-
-                df["sentiment"] = sentiments
-                df["emotion"] = emotions
-                df["score"] = scores
-
-                st.session_state.bulk_result = df
-
-                st.session_state.bulk_history.append({
-                    "datetime":
-                    datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    ),
-                    "rows":
-                    len(df)
-                })
-
-                st.success(
-                    "✅ Analisis selesai"
-                )
-
-                st.dataframe(
-                    df,
-                    use_container_width=True
-                )
-
-                st.download_button(
-                    "⬇ Download Hasil",
-                    data=df.to_csv(
-                        index=False
-                    ).encode(
-                        "utf-8-sig"
-                    ),
-                    file_name=
-                    "hasil_analisis.csv",
-                    mime="text/csv"
-                )
-
-        except Exception as e:
-
-            st.error(
-                f"Terjadi kesalahan: {e}"
-            )
 # ================= STATISTIK =================
 elif menu == "Statistik":
 
@@ -379,135 +211,3 @@ elif menu == "Riwayat":
     else:
         history_df = pd.DataFrame(st.session_state.bulk_history)
         st.dataframe(history_df,use_container_width=True)
-
-emotion_counts = (
-    df["emotion"]
-    .value_counts()
-    .to_dict()
-)
-
-happy = emotion_counts.get("happy",0)
-anger = emotion_counts.get("anger",0)
-fear = emotion_counts.get("fear",0)
-sadness = emotion_counts.get("sadness",0)
-love = emotion_counts.get("love",0)
-
-st.markdown("### 😊 Ringkasan Emosi")
-
-e1,e2,e3,e4,e5 = st.columns(5)
-
-with e1:
-    st.metric("😊 Happy", happy)
-
-with e2:
-    st.metric("😡 Anger", anger)
-
-with e3:
-    st.metric("😨 Fear", fear)
-
-with e4:
-    st.metric("😢 Sadness", sadness)
-
-with e5:
-    st.metric("❤️ Love", love)
-emotion_df = (
-    df["emotion"]
-    .value_counts()
-    .reset_index()
-)
-
-emotion_df.columns = [
-    "emotion",
-    "jumlah"
-]
-col1,col2 = st.columns(2)
-
-with col1:
-
-    fig_sentiment = px.bar(
-        sentiment_count,
-        x="sentiment",
-        y="jumlah",
-        title="Distribusi Sentimen",
-        text_auto=True
-    )
-
-    st.plotly_chart(
-        fig_sentiment,
-        use_container_width=True
-    )
-
-with col2:
-
-    fig_emotion = px.pie(
-        emotion_df,
-        names="emotion",
-        values="jumlah",
-        hole=0.65,
-        title="Distribusi Emosi"
-    )
-
-    st.plotly_chart(
-        fig_emotion,
-        use_container_width=True
-    )
-    cross = pd.crosstab(
-    df["sentiment"],
-    df["emotion"]
-)
-
-heatmap = px.imshow(
-    cross,
-    text_auto=True,
-    aspect="auto",
-    title="Hubungan Sentimen dan Emosi"
-)
-
-st.plotly_chart(
-    heatmap,
-    use_container_width=True
-)
-dominant_emotion = (
-    df["emotion"]
-    .value_counts()
-    .idxmax()
-)
-
-dominant_sentiment = (
-    df["sentiment"]
-    .value_counts()
-    .idxmax()
-)
-
-col1,col2 = st.columns(2)
-
-with col1:
-
-    st.success(
-        f"""
-        😊 Emosi dominan:
-        {dominant_emotion.upper()}
-        """
-    )
-
-with col2:
-
-    st.info(
-        f"""
-        📊 Sentimen dominan:
-        {dominant_sentiment.upper()}
-        """
-    )
-    st.markdown("""
-<style>
-
-.metric-card{
-background:#111827;
-padding:20px;
-border-radius:15px;
-border:1px solid #1f2937;
-box-shadow:0 0 20px rgba(0,0,0,0.2);
-}
-
-</style>
-""", unsafe_allow_html=True)
