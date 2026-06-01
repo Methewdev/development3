@@ -44,7 +44,14 @@ def load_model():
     return classifier
 
 classifier = load_model()
+from transformers import AutoModelForSequenceClassification
 
+model_info = AutoModelForSequenceClassification.from_pretrained(
+    "envidevelopment/emotion_model"
+)
+
+st.sidebar.subheader("Debug Model")
+st.sidebar.json(model_info.config.id2label)
 # =====================================================
 # CUSTOM CSS
 # =====================================================
@@ -584,9 +591,13 @@ elif menu == "✍️ Analisis Satuan":
         confidence = "-"
         sarcasm = "-"
 
-        if analyze and text != "":
+    if analyze and text != "":
 
-            emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
+    result = classifier(text)
+
+    st.write(result)
+
+    emotion, sentiment, confidence, sarcasm = analyze_emotion(text)
 
         st.subheader("📌 Hasil")
 
