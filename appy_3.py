@@ -8,7 +8,7 @@ from transformers import (
 )
 
 # =====================================================
-# PAGE CONFIG
+# CONFIG
 # =====================================================
 
 st.set_page_config(
@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # =====================================================
-# CSS
+# STYLE
 # =====================================================
 
 st.markdown("""
@@ -29,16 +29,10 @@ st.markdown("""
 }
 
 [data-testid="stSidebar"]{
-    background-color:#081224;
+    background-color:#09152D;
 }
 
-.metric-card{
-    background:#0C1D38;
-    padding:15px;
-    border-radius:12px;
-}
-
-h1,h2,h3,h4,h5,h6{
+h1,h2,h3,h4,h5,h6,p,label{
     color:white;
 }
 
@@ -46,17 +40,18 @@ h1,h2,h3,h4,h5,h6{
 """, unsafe_allow_html=True)
 
 # =====================================================
-# SESSION STATE
+# DEVICE
 # =====================================================
 
-if "bulk_result" not in st.session_state:
-    st.session_state.bulk_result = None
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
 
 # =====================================================
-# LOAD MODEL
+# MODEL LOADER
 # =====================================================
 
-@st.cache_resource(show_spinner=False)
+@st.cache_resource
 def load_sentiment_model():
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -67,12 +62,13 @@ def load_sentiment_model():
         "envidevelopment/sentiment_model"
     )
 
+    model.to(DEVICE)
     model.eval()
 
     return tokenizer, model
 
 
-@st.cache_resource(show_spinner=False)
+@st.cache_resource
 def load_emotion_model():
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -83,13 +79,13 @@ def load_emotion_model():
         "envidevelopment/emotion_model"
     )
 
+    model.to(DEVICE)
     model.eval()
 
     return tokenizer, model
 
-
 # =====================================================
-# PREDICT SENTIMENT
+# PREDICTION
 # =====================================================
 
 def predict_sentiment(text):
@@ -100,11 +96,17 @@ def predict_sentiment(text):
         str(text),
         return_tensors="pt",
         truncation=True,
-        padding=True,
-        max_length=512
+        max_length=512,
+        padding=True
     )
 
+    inputs = {
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
+    }
+
     with torch.no_grad():
+
         outputs = model(**inputs)
 
     pred = torch.argmax(
@@ -113,17 +115,13 @@ def predict_sentiment(text):
     ).item()
 
     label_map = {
-        0: "Negatif",
-        1: "Netral",
-        2: "Positif"
+        0:"Negatif",
+        1:"Netral",
+        2:"Positif"
     }
 
-    return label_map.get(pred, "Unknown")
+    return label_map.get(pred,"Unknown")
 
-
-# =====================================================
-# PREDICT EMOTION
-# =====================================================
 
 def predict_emotion(text):
 
@@ -133,11 +131,17 @@ def predict_emotion(text):
         str(text),
         return_tensors="pt",
         truncation=True,
-        padding=True,
-        max_length=512
+        max_length=512,
+        padding=True
     )
 
+    inputs = {
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
+    }
+
     with torch.no_grad():
+
         outputs = model(**inputs)
 
     pred = torch.argmax(
@@ -146,15 +150,21 @@ def predict_emotion(text):
     ).item()
 
     emotion_map = {
-        0: "Anger",
-        1: "Fear",
-        2: "Happy",
-        3: "Love",
-        4: "Sadness"
+        0:"Anger",
+        1:"Fear",
+        2:"Happy",
+        3:"Love",
+        4:"Sadness"
     }
 
-    return emotion_map.get(pred, "Unknown")
+    return emotion_map.get(pred,"Unknown")
 
+# =====================================================
+# SESSION
+# =====================================================
+
+if "result_df" not in st.session_state:
+    st.session_state.result_df = None
 
 # =====================================================
 # SIDEBAR
@@ -179,42 +189,40 @@ if menu == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    if st.session_state.bulk_result is not None:
+    total = 0
+    positif = 0
+    negatif = 0
+    netral = 0
 
-        df = st.session_state.bulk_result
+    if st.session_state.result_df is not None:
+
+        df = st.session_state.result_df
 
         total = len(df)
 
         positif = len(
-            df[df["Sentiment"] == "Positif"]
+            df[df["Sentiment"]=="Positif"]
         )
 
         negatif = len(
-            df[df["Sentiment"] == "Negatif"]
+            df[df["Sentiment"]=="Negatif"]
         )
 
         netral = len(
-            df[df["Sentiment"] == "Netral"]
+            df[df["Sentiment"]=="Netral"]
         )
 
-    else:
+    c1,c2,c3,c4 = st.columns(4)
 
-        total = 0
-        positif = 0
-        negatif = 0
-        netral = 0
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("Total", total)
-    col2.metric("Positif", positif)
-    col3.metric("Negatif", negatif)
-    col4.metric("Netral", netral)
+    c1.metric("Total", total)
+    c2.metric("Positif", positif)
+    c3.metric("Negatif", negatif)
+    c4.metric("Netral", netral)
 
     st.info(
-        "Belum ada hasil Bulk CSV. Silakan upload data terlebih dahulu."
+        "Belum ada hasil Bulk CSV."
         if total == 0
-        else "Data Bulk CSV berhasil diproses."
+        else "Data berhasil diproses."
     )
 
 # =====================================================
@@ -242,7 +250,7 @@ elif menu == "Analisis Satuan":
             try:
 
                 with st.spinner(
-                    "Memuat model..."
+                    "Memproses..."
                 ):
 
                     sentiment = predict_sentiment(
@@ -253,22 +261,20 @@ elif menu == "Analisis Satuan":
                         text
                     )
 
-                c1, c2 = st.columns(2)
+                col1,col2 = st.columns(2)
 
-                with c1:
-                    st.success(
-                        f"Sentimen : {sentiment}"
-                    )
+                col1.success(
+                    f"Sentimen : {sentiment}"
+                )
 
-                with c2:
-                    st.info(
-                        f"Emosi : {emotion}"
-                    )
+                col2.info(
+                    f"Emosi : {emotion}"
+                )
 
             except Exception as e:
 
                 st.error(
-                    f"Gagal memuat model : {e}"
+                    f"Error : {e}"
                 )
 
 # =====================================================
@@ -292,74 +298,50 @@ elif menu == "Bulk CSV":
                 uploaded_file
             )
 
-            st.write(
-                "Preview Data"
-            )
-
             st.dataframe(
                 df.head()
             )
 
-            text_column = st.selectbox(
+            text_col = st.selectbox(
                 "Pilih Kolom Teks",
                 df.columns
             )
 
             if st.button(
-                "Proses Analisis"
+                "Proses Data"
             ):
 
                 sentiments = []
                 emotions = []
 
-                progress = st.progress(
-                    0
-                )
+                progress = st.progress(0)
 
-                for i, text in enumerate(
-                    df[text_column]
+                for i,text in enumerate(
+                    df[text_col]
                 ):
 
-                    try:
-
-                        sentiment = predict_sentiment(
-                            text
-                        )
-
-                        emotion = predict_emotion(
-                            text
-                        )
-
-                    except:
-
-                        sentiment = "Error"
-                        emotion = "Error"
-
                     sentiments.append(
-                        sentiment
+                        predict_sentiment(text)
                     )
 
                     emotions.append(
-                        emotion
+                        predict_emotion(text)
                     )
 
                     progress.progress(
-                        (i + 1)
-                        / len(df)
+                        (i+1)/len(df)
                     )
 
                 df["Sentiment"] = sentiments
                 df["Emotion"] = emotions
 
-                st.session_state.bulk_result = df
+                st.session_state.result_df = df
 
                 st.success(
-                    "Analisis selesai"
+                    "Selesai"
                 )
 
-                st.dataframe(
-                    df.head()
-                )
+                st.dataframe(df)
 
                 csv = df.to_csv(
                     index=False
