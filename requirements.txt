@@ -1,9 +1,10 @@
 streamlit==1.45.1
 pandas==2.2.3
 numpy==1.26.4
-plotly==6.1.2
+
 torch==2.5.1
 transformers==4.52.4
+
 sentencepiece==0.2.0
 safetensors==0.5.3
 accelerate==1.7.0
