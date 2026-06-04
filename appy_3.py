@@ -20,8 +20,39 @@ st.set_page_config(
 # LOAD MODEL
 # =====================
 
-@st.cache_resource
 def load_models():
+
+   def load_models():
+
+    try:
+
+        sentiment_tokenizer = AutoTokenizer.from_pretrained(
+            "envidevelopment/sentiment_model"
+        )
+
+        sentiment_model = AutoModelForSequenceClassification.from_pretrained(
+            "envidevelopment/sentiment_model"
+        )
+
+        emotion_tokenizer = AutoTokenizer.from_pretrained(
+            "envidevelopment/emotion_model"
+        )
+
+        emotion_model = AutoModelForSequenceClassification.from_pretrained(
+            "envidevelopment/emotion_model"
+        )
+
+        return (
+            sentiment_tokenizer,
+            sentiment_model,
+            emotion_tokenizer,
+            emotion_model
+        )
+
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        st.stop()
+        def load_models():
 
     sentiment_tokenizer = AutoTokenizer.from_pretrained(
         "envidevelopment/sentiment_model"
@@ -31,24 +62,5 @@ def load_models():
         "envidevelopment/sentiment_model"
     )
 
-    emotion_tokenizer = AutoTokenizer.from_pretrained(
-        "envidevelopment/emotion_model"
-    )
-
-    emotion_model = AutoModelForSequenceClassification.from_pretrained(
-        "envidevelopment/emotion_model"
-    )
-
-    return (
-        sentiment_tokenizer,
-        sentiment_model,
-        emotion_tokenizer,
-        emotion_model
-    )
-
-(
-    sentiment_tokenizer,
-    sentiment_model,
-    emotion_tokenizer,
-    emotion_model
-) = load_models()
+    return sentiment_tokenizer, sentiment_model
+       sentiment_tokenizer, sentiment_model = load_models()
