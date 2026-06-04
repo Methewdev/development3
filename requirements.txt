@@ -1,10 +1,10 @@
 streamlit
+torch
+torchvision
+transformers
 pandas
 numpy
 plotly
-torch
-transformers
-streamlit-option-menu
+scikit-learn
 sentencepiece
 accelerate
-openpyxl
