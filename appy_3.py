@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import torch.nn.functional as F
 import torch
+import plotly.express as px
 
 from transformers import (
     AutoTokenizer,
@@ -185,43 +186,118 @@ menu = st.sidebar.radio(
 
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard")
+    st.title("📊 Dashboard Analisis")
 
-    total = 0
-    positif = 0
-    negatif = 0
-    netral = 0
+    if st.session_state.result_df is None:
 
-    if st.session_state.result_df is not None:
+        st.info(
+            "Silakan proses data pada menu Bulk CSV terlebih dahulu."
+        )
+
+    else:
 
         df = st.session_state.result_df
 
         total = len(df)
 
         positif = len(
-            df[df["Sentiment"]=="Positif"]
+            df[df["Sentiment"] == "Positif"]
         )
 
         negatif = len(
-            df[df["Sentiment"]=="Negatif"]
+            df[df["Sentiment"] == "Negatif"]
         )
 
         netral = len(
-            df[df["Sentiment"]=="Netral"]
+            df[df["Sentiment"] == "Netral"]
         )
 
-    c1,c2,c3,c4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Total", total)
-    c2.metric("Positif", positif)
-    c3.metric("Negatif", negatif)
-    c4.metric("Netral", netral)
+        c1.metric(
+            "Total Data",
+            total
+        )
 
-    st.info(
-        "Belum ada hasil Bulk CSV."
-        if total == 0
-        else "Data berhasil diproses."
-    )
+        c2.metric(
+            "Positif",
+            positif
+        )
+
+        c3.metric(
+            "Negatif",
+            negatif
+        )
+
+        c4.metric(
+            "Netral",
+            netral
+        )
+
+        st.markdown("---")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            sentiment_count = (
+                df["Sentiment"]
+                .value_counts()
+                .reset_index()
+            )
+
+            sentiment_count.columns = [
+                "Sentiment",
+                "Jumlah"
+            ]
+
+            fig_sentiment = px.pie(
+                sentiment_count,
+                names="Sentiment",
+                values="Jumlah",
+                title="Distribusi Sentimen"
+            )
+
+            st.plotly_chart(
+                fig_sentiment,
+                use_container_width=True
+            )
+
+        with col2:
+
+            emotion_count = (
+                df["Emotion"]
+                .value_counts()
+                .reset_index()
+            )
+
+            emotion_count.columns = [
+                "Emotion",
+                "Jumlah"
+            ]
+
+            fig_emotion = px.bar(
+                emotion_count,
+                x="Emotion",
+                y="Jumlah",
+                title="Distribusi Emosi"
+            )
+
+            st.plotly_chart(
+                fig_emotion,
+                use_container_width=True
+            )
+
+        st.markdown("---")
+
+        st.subheader(
+            "📋 Hasil Analisis"
+        )
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
 
 # =====================================================
 # ANALISIS SATUAN
