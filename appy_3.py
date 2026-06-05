@@ -430,18 +430,17 @@ elif menu == "Bulk CSV":
 
         try:
 
-           df = pd.read_csv(
-    uploaded_file,
-    encoding="latin1",
-    sep=None,
-    engine="python",
-    on_bad_lines="skip"
-)
+    df = pd.read_csv(
+        uploaded_file,
+        encoding="latin1",
+        sep=None,
+        engine="python",
+        on_bad_lines="skip"
+    )
 
-            st.dataframe(
-                df.head()
-            )
-
+    st.dataframe(
+        df.head()
+    )
             text_col = st.selectbox(
                 "Pilih Kolom Teks",
                 df.columns
