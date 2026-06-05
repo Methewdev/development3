@@ -285,11 +285,13 @@ elif menu == "Analisis Satuan":
                 st.error(
                     f"Error : {e}"
                 )
+
 # =====================================================
 # BULK CSV
 # =====================================================
 
-elif menu == "Bulk CSV":
+elif menu == "Bulk CS
+V":
 
     st.title("📂 Bulk CSV")
 
@@ -303,9 +305,9 @@ elif menu == "Bulk CSV":
         try:
 
             df = pd.read_csv(
-            uploaded_file,
-            encoding="latin1",
-            sep=";"
+                uploaded_file,
+                encoding="latin1",
+                sep=";"
             )
 
             st.dataframe(
@@ -332,6 +334,17 @@ elif menu == "Bulk CSV":
 
                     emotion_label, _ = predict_emotion(
                         str(text)
+                    )
+
+                    # Hilangkan emoji untuk hasil CSV
+                    emotion_label = (
+                        emotion_label
+                        .replace("😡 ", "")
+                        .replace("😨 ", "")
+                        .replace("😊 ", "")
+                        .replace("❤️ ", "")
+                        .replace("😢 ", "")
+                        .replace("❓ ", "")
                     )
 
                     sentiments.append(
