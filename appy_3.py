@@ -251,7 +251,6 @@ if menu == "Dashboard":
 # ANALISIS SATUAN
 # =====================================================
 
-```python
 elif menu == "Analisis Satuan":
 
     st.title("🔍 Analisis Sentimen & Emosi")
