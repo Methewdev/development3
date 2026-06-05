@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import torch.nn.functional as F
 import torch
 
 from transformers import (
@@ -100,29 +101,27 @@ def predict_sentiment(text):
         padding=True
     )
 
-    inputs = {
-        k:v.to(DEVICE)
-        for k,v in inputs.items()
-    }
+    inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
 
     with torch.no_grad():
-
         outputs = model(**inputs)
 
-    pred = torch.argmax(
-        outputs.logits,
-        dim=1
-    ).item()
+    probs = F.softmax(outputs.logits, dim=1)
+
+    confidence = torch.max(probs).item() * 100
+
+    pred = torch.argmax(probs, dim=1).item()
 
     label_map = {
-        0:"Negatif",
-        1:"Netral",
-        2:"Positif"
+        0: "Negatif",
+        1: "Netral",
+        2: "Positif"
     }
 
-    return label_map.get(pred,"Unknown")
-
-
+    return (
+        label_map.get(pred, "Unknown"),
+        round(confidence, 2)
+    )
 def predict_emotion(text):
 
     tokenizer, model = load_emotion_model()
@@ -135,29 +134,29 @@ def predict_emotion(text):
         padding=True
     )
 
-    inputs = {
-        k:v.to(DEVICE)
-        for k,v in inputs.items()
-    }
+    inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
 
     with torch.no_grad():
-
         outputs = model(**inputs)
 
-    pred = torch.argmax(
-        outputs.logits,
-        dim=1
-    ).item()
+    probs = F.softmax(outputs.logits, dim=1)
+
+    confidence = torch.max(probs).item() * 100
+
+    pred = torch.argmax(probs, dim=1).item()
 
     emotion_map = {
-        0:"😡 Anger",
-        1:"😨 Fear",
-        2:"😊 Happy",
-        3:"❤️ Love",
-        4:"😢 Sadness"
+        0: "😡 Anger",
+        1: "😨 Fear",
+        2: "😊 Happy",
+        3: "❤️ Love",
+        4: "😢 Sadness"
     }
 
-    return emotion_map.get(pred,"❓ Unknown")
+    return (
+        emotion_map.get(pred, "❓ Unknown"),
+        round(confidence, 2)
+    )
 # =====================================================
 # SESSION
 # =====================================================
@@ -230,51 +229,82 @@ if menu == "Dashboard":
 
 elif menu == "Analisis Satuan":
 
-    st.title("🔍 Analisis Satuan")
+st.title("🔍 Analisis Sentimen & Emosi")
 
-    text = st.text_area(
-        "Masukkan Ulasan"
-    )
+text = st.text_area(
+    "Masukkan Ulasan",
+    height=180
+)
 
-    if st.button("Analisis"):
+if st.button("🚀 Analisis"):
 
-        if not text.strip():
+    if not text.strip():
 
-            st.warning(
-                "Masukkan teks terlebih dahulu"
+        st.warning(
+            "Masukkan teks terlebih dahulu"
+        )
+
+    else:
+
+        try:
+
+            with st.spinner(
+                "🧠 Sedang menganalisis..."
+            ):
+
+                sentiment, sentiment_score = predict_sentiment(text)
+
+                emotion, emotion_score = predict_emotion(text)
+
+            st.markdown("## 📋 Hasil Analisis")
+
+            c1, c2, c3, c4 = st.columns(4)
+
+            c1.metric(
+                "Sentimen",
+                sentiment
             )
 
-        else:
+            c2.metric(
+                "Confidence",
+                f"{sentiment_score:.2f}%"
+            )
 
-            try:
+            c3.metric(
+                "Emosi",
+                emotion
+            )
 
-                with st.spinner(
-                    "Memproses..."
-                ):
+            c4.metric(
+                "Confidence",
+                f"{emotion_score:.2f}%"
+            )
 
-                    sentiment = predict_sentiment(
-                        text
-                    )
+            st.markdown("---")
 
-                    emotion = predict_emotion(
-                        text
-                    )
+            st.subheader("📈 Tingkat Keyakinan Model")
 
-                col1,col2 = st.columns(2)
+            st.write(
+                f"Sentiment Confidence : {sentiment_score:.2f}%"
+            )
 
-                col1.success(
-                    f"Sentimen : {sentiment}"
-                )
+            st.progress(
+                sentiment_score / 100
+            )
 
-                col2.info(
-                    f"Emosi : {emotion}"
-                )
+            st.write(
+                f"Emotion Confidence : {emotion_score:.2f}%"
+            )
 
-            except Exception as e:
+            st.progress(
+                emotion_score / 100
+            )
 
-                st.error(
-                    f"Error : {e}"
-                )
+        except Exception as e:
+
+            st.error(
+                f"Error : {e}"
+            )
 
 # =====================================================
 # BULK CSV
@@ -319,13 +349,11 @@ elif menu == "Bulk CSV":
                     df[text_col]
                 ):
 
-                    sentiments.append(
-                        predict_sentiment(text)
-                    )
+                  sentiment_label, _ = predict_sentiment(text)
+emotion_label, _ = predict_emotion(text)
 
-                    emotions.append(
-                        predict_emotion(text)
-                    )
+sentiments.append(sentiment_label)
+emotions.append(emotion_label)
 
                     progress.progress(
                         (i+1)/len(df)
