@@ -167,6 +167,8 @@ if "result_df" not in st.session_state:
 
 if "single_result" not in st.session_state:
     st.session_state.single_result = None
+
+
 # =====================================================
 # SIDEBAR
 # =====================================================
@@ -327,18 +329,21 @@ elif menu == "Analisis Satuan":
     with top2:
 
         if st.button(
-            "🔄 Refresh",
-            use_container_width=True
-        ):
+    "🔄 Refresh",
+    use_container_width=True
+):
 
-            st.session_state.single_result = None
+    st.session_state.single_result = None
 
-            st.rerun()
+    st.session_state.input_text = ""
 
-    text = st.text_area(
-        "Masukkan Ulasan",
-        height=180
-    )
+    st.rerun()
+
+   text = st.text_area(
+    "Masukkan Ulasan",
+    height=180,
+    key="input_text"
+)
 
     if st.button("🚀 Analisis"):
 
