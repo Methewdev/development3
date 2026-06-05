@@ -1,10 +1,359 @@
 import streamlit as st
+import pandas as pd
+import torch
+
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification
+)
+
+# =====================================================
+# CONFIG
+# =====================================================
 
 st.set_page_config(
     page_title="Emotion AI",
+    page_icon="🧠",
     layout="wide"
 )
 
-st.title("Emotion AI")
+# =====================================================
+# STYLE
+# =====================================================
 
-st.success("Deploy berhasil")
+st.markdown("""
+<style>
+
+[data-testid="stAppViewContainer"]{
+    background-color:#020B1C;
+}
+
+[data-testid="stSidebar"]{
+    background-color:#09152D;
+}
+
+h1,h2,h3,h4,h5,h6,p,label{
+    color:white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# DEVICE
+# =====================================================
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+# =====================================================
+# MODEL LOADER
+# =====================================================
+
+@st.cache_resource
+def load_sentiment_model():
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "envidevelopment/sentiment_model"
+    )
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "envidevelopment/sentiment_model"
+    )
+
+    model.to(DEVICE)
+    model.eval()
+
+    return tokenizer, model
+
+
+@st.cache_resource
+def load_emotion_model():
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "envidevelopment/emotion_model"
+    )
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "envidevelopment/emotion_model"
+    )
+
+    model.to(DEVICE)
+    model.eval()
+
+    return tokenizer, model
+
+# =====================================================
+# PREDICTION
+# =====================================================
+
+def predict_sentiment(text):
+
+    tokenizer, model = load_sentiment_model()
+
+    inputs = tokenizer(
+        str(text),
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+        padding=True
+    )
+
+    inputs = {
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
+    }
+
+    with torch.no_grad():
+
+        outputs = model(**inputs)
+
+    pred = torch.argmax(
+        outputs.logits,
+        dim=1
+    ).item()
+
+    label_map = {
+        0:"Negatif",
+        1:"Netral",
+        2:"Positif"
+    }
+
+    return label_map.get(pred,"Unknown")
+
+
+def predict_emotion(text):
+
+    tokenizer, model = load_emotion_model()
+
+    inputs = tokenizer(
+        str(text),
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+        padding=True
+    )
+
+    inputs = {
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
+    }
+
+    with torch.no_grad():
+
+        outputs = model(**inputs)
+
+    pred = torch.argmax(
+        outputs.logits,
+        dim=1
+    ).item()
+
+    emotion_map = {
+        0:"Anger",
+        1:"Fear",
+        2:"Happy",
+        3:"Love",
+        4:"Sadness"
+    }
+
+    return emotion_map.get(pred,"Unknown")
+
+# =====================================================
+# SESSION
+# =====================================================
+
+if "result_df" not in st.session_state:
+    st.session_state.result_df = None
+
+# =====================================================
+# SIDEBAR
+# =====================================================
+
+st.sidebar.title("🧠 Emotion AI")
+
+menu = st.sidebar.radio(
+    "Menu",
+    [
+        "Dashboard",
+        "Analisis Satuan",
+        "Bulk CSV"
+    ]
+)
+
+# =====================================================
+# DASHBOARD
+# =====================================================
+
+if menu == "Dashboard":
+
+    st.title("📊 Dashboard")
+
+    total = 0
+    positif = 0
+    negatif = 0
+    netral = 0
+
+    if st.session_state.result_df is not None:
+
+        df = st.session_state.result_df
+
+        total = len(df)
+
+        positif = len(
+            df[df["Sentiment"]=="Positif"]
+        )
+
+        negatif = len(
+            df[df["Sentiment"]=="Negatif"]
+        )
+
+        netral = len(
+            df[df["Sentiment"]=="Netral"]
+        )
+
+    c1,c2,c3,c4 = st.columns(4)
+
+    c1.metric("Total", total)
+    c2.metric("Positif", positif)
+    c3.metric("Negatif", negatif)
+    c4.metric("Netral", netral)
+
+    st.info(
+        "Belum ada hasil Bulk CSV."
+        if total == 0
+        else "Data berhasil diproses."
+    )
+
+# =====================================================
+# ANALISIS SATUAN
+# =====================================================
+
+elif menu == "Analisis Satuan":
+
+    st.title("🔍 Analisis Satuan")
+
+    text = st.text_area(
+        "Masukkan Ulasan"
+    )
+
+    if st.button("Analisis"):
+
+        if not text.strip():
+
+            st.warning(
+                "Masukkan teks terlebih dahulu"
+            )
+
+        else:
+
+            try:
+
+                with st.spinner(
+                    "Memproses..."
+                ):
+
+                    sentiment = predict_sentiment(
+                        text
+                    )
+
+                    emotion = predict_emotion(
+                        text
+                    )
+
+                col1,col2 = st.columns(2)
+
+                col1.success(
+                    f"Sentimen : {sentiment}"
+                )
+
+                col2.info(
+                    f"Emosi : {emotion}"
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Error : {e}"
+                )
+
+# =====================================================
+# BULK CSV
+# =====================================================
+
+elif menu == "Bulk CSV":
+
+    st.title("📂 Bulk CSV")
+
+    uploaded_file = st.file_uploader(
+        "Upload CSV",
+        type=["csv"]
+    )
+
+    if uploaded_file is not None:
+
+        try:
+
+            df = pd.read_csv(
+                uploaded_file
+            )
+
+            st.dataframe(
+                df.head()
+            )
+
+            text_col = st.selectbox(
+                "Pilih Kolom Teks",
+                df.columns
+            )
+
+            if st.button(
+                "Proses Data"
+            ):
+
+                sentiments = []
+                emotions = []
+
+                progress = st.progress(0)
+
+                for i,text in enumerate(
+                    df[text_col]
+                ):
+
+                    sentiments.append(
+                        predict_sentiment(text)
+                    )
+
+                    emotions.append(
+                        predict_emotion(text)
+                    )
+
+                    progress.progress(
+                        (i+1)/len(df)
+                    )
+
+                df["Sentiment"] = sentiments
+                df["Emotion"] = emotions
+
+                st.session_state.result_df = df
+
+                st.success(
+                    "Selesai"
+                )
+
+                st.dataframe(df)
+
+                csv = df.to_csv(
+                    index=False
+                ).encode("utf-8")
+
+                st.download_button(
+                    "⬇ Download Hasil",
+                    csv,
+                    file_name="hasil_analisis.csv",
+                    mime="text/csv"
+                )
+
+        except Exception as e:
+
+            st.error(str(e))
