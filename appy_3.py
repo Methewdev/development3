@@ -229,83 +229,62 @@ if menu == "Dashboard":
 
 elif menu == "Analisis Satuan":
 
-st.title("🔍 Analisis Sentimen & Emosi")
+    st.title("🔍 Analisis Sentimen & Emosi")
 
-text = st.text_area(
-    "Masukkan Ulasan",
-    height=180
-)
+    text = st.text_area(
+        "Masukkan Ulasan",
+        height=180
+    )
 
-if st.button("🚀 Analisis"):
+    if st.button("🚀 Analisis"):
 
-    if not text.strip():
+        if not text.strip():
 
-        st.warning(
-            "Masukkan teks terlebih dahulu"
-        )
-
-    else:
-
-        try:
-
-            with st.spinner(
-                "🧠 Sedang menganalisis..."
-            ):
-
-                sentiment, sentiment_score = predict_sentiment(text)
-
-                emotion, emotion_score = predict_emotion(text)
-
-            st.markdown("## 📋 Hasil Analisis")
-
-            c1, c2, c3, c4 = st.columns(4)
-
-            c1.metric(
-                "Sentimen",
-                sentiment
+            st.warning(
+                "Masukkan teks terlebih dahulu"
             )
 
-            c2.metric(
-                "Confidence",
-                f"{sentiment_score:.2f}%"
-            )
+        else:
 
-            c3.metric(
-                "Emosi",
-                emotion
-            )
+            try:
 
-            c4.metric(
-                "Confidence",
-                f"{emotion_score:.2f}%"
-            )
+                with st.spinner(
+                    "🧠 Sedang menganalisis..."
+                ):
 
-            st.markdown("---")
+                    sentiment, sentiment_score = predict_sentiment(text)
 
-            st.subheader("📈 Tingkat Keyakinan Model")
+                    emotion, emotion_score = predict_emotion(text)
 
-            st.write(
-                f"Sentiment Confidence : {sentiment_score:.2f}%"
-            )
+                st.markdown("## 📋 Hasil Analisis")
 
-            st.progress(
-                sentiment_score / 100
-            )
+                c1, c2, c3, c4 = st.columns(4)
 
-            st.write(
-                f"Emotion Confidence : {emotion_score:.2f}%"
-            )
+                c1.metric(
+                    "Sentimen",
+                    sentiment
+                )
 
-            st.progress(
-                emotion_score / 100
-            )
+                c2.metric(
+                    "Confidence",
+                    f"{sentiment_score:.2f}%"
+                )
 
-        except Exception as e:
+                c3.metric(
+                    "Emosi",
+                    emotion
+                )
 
-            st.error(
-                f"Error : {e}"
-            )
+                c4.metric(
+                    "Confidence",
+                    f"{emotion_score:.2f}%"
+                )
 
+            except Exception as e:
+
+                st.error(
+                    f"Error : {e}"
+                )
 # =====================================================
 # BULK CSV
 # =====================================================
