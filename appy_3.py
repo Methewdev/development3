@@ -302,7 +302,10 @@ elif menu == "Bulk CSV":
 
         try:
 
-            df = pd.read_csv(uploaded_file)
+           df = pd.read_csv(
+    uploaded_file,
+    encoding="cp1252"
+)
 
             st.dataframe(
                 df.head()
