@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import torch
+import torch.nn.functional as F
 
 from transformers import (
     AutoTokenizer,
@@ -101,27 +102,37 @@ def predict_sentiment(text):
     )
 
     inputs = {
-        k:v.to(DEVICE)
-        for k,v in inputs.items()
+        k: v.to(DEVICE)
+        for k, v in inputs.items()
     }
 
     with torch.no_grad():
-
         outputs = model(**inputs)
 
-    pred = torch.argmax(
+    probs = F.softmax(
         outputs.logits,
+        dim=1
+    )
+
+    confidence = torch.max(
+        probs
+    ).item()
+
+    pred = torch.argmax(
+        probs,
         dim=1
     ).item()
 
     label_map = {
-        0:"Negatif",
-        1:"Netral",
-        2:"Positif"
+        0: "Negatif",
+        1: "Netral",
+        2: "Positif"
     }
 
-    return label_map.get(pred,"Unknown")
-
+    return (
+        label_map.get(pred, "Unknown"),
+        round(confidence * 100, 2)
+    )
 
 def predict_emotion(text):
 
@@ -136,28 +147,39 @@ def predict_emotion(text):
     )
 
     inputs = {
-        k:v.to(DEVICE)
-        for k,v in inputs.items()
+        k: v.to(DEVICE)
+        for k, v in inputs.items()
     }
 
     with torch.no_grad():
-
         outputs = model(**inputs)
 
-    pred = torch.argmax(
+    probs = F.softmax(
         outputs.logits,
+        dim=1
+    )
+
+    confidence = torch.max(
+        probs
+    ).item()
+
+    pred = torch.argmax(
+        probs,
         dim=1
     ).item()
 
     emotion_map = {
-        0:"Anger",
-        1:"Fear",
-        2:"Happy",
-        3:"Love",
-        4:"Sadness"
+        0: "😡 Anger",
+        1: "😨 Fear",
+        2: "😊 Happy",
+        3: "❤️ Love",
+        4: "😢 Sadness"
     }
 
-    return emotion_map.get(pred,"Unknown")
+    return (
+        emotion_map.get(pred, "Unknown"),
+        round(confidence * 100, 2)
+    )
 
 # =====================================================
 # SESSION
@@ -231,13 +253,15 @@ if menu == "Dashboard":
 
 elif menu == "Analisis Satuan":
 
-    st.title("🔍 Analisis Satuan")
+    st.title("🔍 Analisis Sentimen & Emosi")
 
     text = st.text_area(
-        "Masukkan Ulasan"
+        "Masukkan Ulasan",
+        height=180,
+        placeholder="Contoh: Aplikasi sangat membantu dan mudah digunakan"
     )
 
-    if st.button("Analisis"):
+    if st.button("🚀 Analisis"):
 
         if not text.strip():
 
@@ -250,26 +274,116 @@ elif menu == "Analisis Satuan":
             try:
 
                 with st.spinner(
-                    "Memproses..."
+                    "🧠 AI sedang menganalisis..."
                 ):
 
-                    sentiment = predict_sentiment(
+                    sentiment, sentiment_score = predict_sentiment(
                         text
                     )
 
-                    emotion = predict_emotion(
+                    emotion, emotion_score = predict_emotion(
                         text
                     )
 
-                col1,col2 = st.columns(2)
+                st.markdown("## 📋 Hasil Analisis")
 
-                col1.success(
-                    f"Sentimen : {sentiment}"
+                c1, c2, c3, c4 = st.columns(4)
+
+                with c1:
+                    st.metric(
+                        "Sentimen",
+                        sentiment
+                    )
+
+                with c2:
+                    st.metric(
+                        "Confidence",
+                        f"{sentiment_score:.2f}%"
+                    )
+
+                with c3:
+                    st.metric(
+                        "Emosi",
+                        emotion
+                    )
+
+                with c4:
+                    st.metric(
+                        "Confidence",
+                        f"{emotion_score:.2f}%"
+                    )
+
+                st.markdown("---")
+
+                st.subheader(
+                    "📈 Tingkat Keyakinan Model"
                 )
 
-                col2.info(
-                    f"Emosi : {emotion}"
+                st.write(
+                    f"Sentiment Confidence : {sentiment_score:.2f}%"
                 )
+
+                st.progress(
+                    sentiment_score / 100
+                )
+
+                st.write(
+                    f"Emotion Confidence : {emotion_score:.2f}%"
+                )
+
+                st.progress(
+                    emotion_score / 100
+                )
+
+                st.markdown("---")
+
+                if sentiment == "Positif":
+
+                    st.success(
+                        f"""
+🎉 Hasil Analisis
+
+😊 Sentimen : Positif
+
+🧠 Emosi Dominan : {emotion}
+
+📈 Confidence Sentiment : {sentiment_score:.2f}%
+
+📈 Confidence Emotion : {emotion_score:.2f}%
+"""
+                    )
+
+                elif sentiment == "Negatif":
+
+                    st.error(
+                        f"""
+⚠️ Hasil Analisis
+
+😔 Sentimen : Negatif
+
+🧠 Emosi Dominan : {emotion}
+
+📈 Confidence Sentiment : {sentiment_score:.2f}%
+
+📈 Confidence Emotion : {emotion_score:.2f}%
+"""
+                    )
+
+                else:
+
+                    st.info(
+                        f"""
+ℹ️ Hasil Analisis
+
+😐 Sentimen : Netral
+
+🧠 Emosi Dominan : {emotion}
+
+📈 Confidence Sentiment : {sentiment_score:.2f}%
+
+📈 Confidence Emotion : {emotion_score:.2f}%
+"""
+                    )
 
             except Exception as e:
 
