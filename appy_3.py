@@ -253,90 +253,88 @@ if menu == "Dashboard":
 
 elif menu == "Analisis Satuan":
 
-    st.title("🔍 Analisis Sentimen & Emosi")
+st.title("🔍 Analisis Sentimen & Emosi")
 
-    text = st.text_area(
-        "Masukkan Ulasan",
-        height=180,
-        placeholder="Contoh: Aplikasi sangat membantu dan mudah digunakan"
-    )
+text = st.text_area(
+    "Masukkan Ulasan",
+    height=180,
+    placeholder="Contoh: Aplikasi sangat membantu dan mudah digunakan"
+)
 
-    if st.button("🚀 Analisis"):
+if st.button("🚀 Analisis"):
 
-        if not text.strip():
+    if not text.strip():
 
-            st.warning(
-                "Masukkan teks terlebih dahulu"
+        st.warning(
+            "Masukkan teks terlebih dahulu"
+        )
+
+    else:
+
+        try:
+
+            with st.spinner(
+                "🧠 AI sedang menganalisis..."
+            ):
+
+                sentiment, sentiment_score = predict_sentiment(
+                    text
+                )
+
+                emotion, emotion_score = predict_emotion(
+                    text
+                )
+
+            st.markdown("## 📋 Hasil Analisis")
+
+            c1, c2, c3, c4 = st.columns(4)
+
+            with c1:
+                st.metric(
+                    "Sentimen",
+                    sentiment
+                )
+
+            with c2:
+                st.metric(
+                    "Confidence",
+                    f"{sentiment_score:.2f}%"
+                )
+
+            with c3:
+                st.metric(
+                    "Emosi",
+                    emotion
+                )
+
+            with c4:
+                st.metric(
+                    "Confidence",
+                    f"{emotion_score:.2f}%"
+                )
+
+            st.markdown("---")
+
+            st.subheader("📈 Tingkat Keyakinan Model")
+
+            st.write(
+                f"Sentiment Confidence : {sentiment_score:.2f}%"
             )
 
-        else:
+            st.progress(
+                sentiment_score / 100
+            )
 
-            try:
+            st.write(
+                f"Emotion Confidence : {emotion_score:.2f}%"
+            )
 
-                with st.spinner(
-                    "🧠 AI sedang menganalisis..."
-                ):
+            st.progress(
+                emotion_score / 100
+            )
 
-                    sentiment, sentiment_score = predict_sentiment(
-                        text
-                    )
+        except Exception as e:
 
-                    emotion, emotion_score = predict_emotion(
-                        text
-                    )
-
-                st.markdown("## 📋 Hasil Analisis")
-
-                c1, c2, c3, c4 = st.columns(4)
-
-                with c1:
-                    st.metric(
-                        "Sentimen",
-                        sentiment
-                    )
-
-                with c2:
-                    st.metric(
-                        "Confidence",
-                        f"{sentiment_score:.2f}%"
-                    )
-
-                with c3:
-                    st.metric(
-                        "Emosi",
-                        emotion
-                    )
-
-                with c4:
-                    st.metric(
-                        "Confidence",
-                        f"{emotion_score:.2f}%"
-                    )
-
-                st.markdown("---")
-
-                st.subheader("📈 Tingkat Keyakinan Model")
-
-                st.write(
-                    f"Sentiment Confidence : {sentiment_score:.2f}%"
-                )
-
-                st.progress(
-                    sentiment_score / 100
-                )
-
-                st.write(
-                    f"Emotion Confidence : {emotion_score:.2f}%"
-                )
-
-                st.progress(
-                    emotion_score / 100
-                )
-
-            except Exception as e:
-
-                st.error(
-                    f"Error : {e}"
-                )
-```
-
+            st.error(
+                f"Error : {e}"
+            )
