@@ -317,14 +317,6 @@ if menu == "Dashboard":
 # =====================================================
 
 elif menu == "Analisis Satuan":
- if st.button(
-            "🔄 Refresh",
-            use_container_width=True
-        ):
-
-            st.session_state.result_df = None
-
-            st.rerun()
     st.title("🔍 Analisis Sentimen & Emosi")
 
     text = st.text_area(
