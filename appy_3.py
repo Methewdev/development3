@@ -187,15 +187,19 @@ menu = st.sidebar.radio(
 if menu == "Dashboard":
 
     st.title("📊 Dashboard Analisis")
-    col1, col2 = st.columns([8,2])
 
-with col2:
+    top_col1, top_col2 = st.columns([8, 2])
 
-    if st.button("🔄 Refresh"):
+    with top_col2:
 
-        st.session_state.result_df = None
+        if st.button(
+            "🔄 Refresh",
+            use_container_width=True
+        ):
 
-        st.rerun()
+            st.session_state.result_df = None
+
+            st.rerun()
 
     if st.session_state.result_df is None:
 
@@ -245,9 +249,9 @@ with col2:
 
         st.markdown("---")
 
-        col1, col2 = st.columns(2)
+        chart1, chart2 = st.columns(2)
 
-        with col1:
+        with chart1:
 
             sentiment_count = (
                 df["Sentiment"]
@@ -272,7 +276,7 @@ with col2:
                 use_container_width=True
             )
 
-        with col2:
+        with chart2:
 
             emotion_count = (
                 df["Emotion"]
