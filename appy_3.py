@@ -302,15 +302,24 @@ elif menu == "Bulk CSV":
 
         try:
 
-df = pd.read_csv(
-    uploaded_file,
-    encoding="cp1252",
-    engine="python"
-)
-            st.dataframe(
-                df.head()
-            )
+try:
 
+    df = pd.read_csv(
+        uploaded_file,
+        encoding="cp1252",
+        engine="python"
+    )
+
+    st.dataframe(
+        df.head()
+    )
+
+except Exception as e:
+
+    st.error(
+        f"Error: {e}"
+    )
+    
             text_col = st.selectbox(
                 "Pilih Kolom Teks",
                 df.columns
