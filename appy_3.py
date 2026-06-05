@@ -302,9 +302,7 @@ elif menu == "Bulk CSV":
 
         try:
 
-            df = pd.read_csv(
-                uploaded_file
-            )
+            df = pd.read_csv(uploaded_file)
 
             st.dataframe(
                 df.head()
@@ -315,31 +313,33 @@ elif menu == "Bulk CSV":
                 df.columns
             )
 
-            if st.button(
-                "Proses Data"
-            ):
+            if st.button("Proses Data"):
 
                 sentiments = []
                 emotions = []
 
                 progress = st.progress(0)
 
-               for i, text in enumerate(df[text_col]):
+                for i, text in enumerate(df[text_col]):
 
-    sentiment_label, _ = predict_sentiment(text)
+                    sentiment_label, _ = predict_sentiment(
+                        str(text)
+                    )
 
-    emotion_label, _ = predict_emotion(text)
+                    emotion_label, _ = predict_emotion(
+                        str(text)
+                    )
 
-    sentiments.append(sentiment_label)
+                    sentiments.append(
+                        sentiment_label
+                    )
 
-    emotions.append(emotion_label)
-
-    progress.progress(
-        (i + 1) / len(df)
-    )
+                    emotions.append(
+                        emotion_label
+                    )
 
                     progress.progress(
-                        (i+1)/len(df)
+                        (i + 1) / len(df)
                     )
 
                 df["Sentiment"] = sentiments
@@ -348,7 +348,7 @@ elif menu == "Bulk CSV":
                 st.session_state.result_df = df
 
                 st.success(
-                    "Selesai"
+                    "✅ Analisis selesai"
                 )
 
                 st.dataframe(df)
@@ -366,4 +366,7 @@ elif menu == "Bulk CSV":
 
         except Exception as e:
 
+            st.error(
+                f"Error: {e}"
+            )
             st.error(str(e))
