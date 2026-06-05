@@ -304,7 +304,8 @@ elif menu == "Bulk CSV":
 
             df = pd.read_csv(
             uploaded_file,
-            encoding_errors="ignore"
+            encoding="latin1",
+            sep=";"
             )
 
             st.dataframe(
