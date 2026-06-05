@@ -165,6 +165,8 @@ def predict_emotion(text):
 if "result_df" not in st.session_state:
     st.session_state.result_df = None
 
+if "single_result" not in st.session_state:
+    st.session_state.single_result = None
 # =====================================================
 # SIDEBAR
 # =====================================================
