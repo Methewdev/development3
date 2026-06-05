@@ -324,15 +324,19 @@ elif menu == "Bulk CSV":
 
                 progress = st.progress(0)
 
-                for i,text in enumerate(
-                    df[text_col]
-                ):
+               for i, text in enumerate(df[text_col]):
 
-                  sentiment_label, _ = predict_sentiment(text)
-emotion_label, _ = predict_emotion(text)
+    sentiment_label, _ = predict_sentiment(text)
 
-sentiments.append(sentiment_label)
-emotions.append(emotion_label)
+    emotion_label, _ = predict_emotion(text)
+
+    sentiments.append(sentiment_label)
+
+    emotions.append(emotion_label)
+
+    progress.progress(
+        (i + 1) / len(df)
+    )
 
                     progress.progress(
                         (i+1)/len(df)
