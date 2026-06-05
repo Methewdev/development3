@@ -366,8 +366,7 @@ elif menu == "Analisis Satuan":
 # BULK CSV
 # =====================================================
 
-elif menu == "Bulk CS
-V":
+elif menu == "Bulk CSV":
 
     st.title("📂 Bulk CSV")
 
