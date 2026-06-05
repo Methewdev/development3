@@ -430,17 +430,18 @@ elif menu == "Bulk CSV":
 
         try:
 
-    df = pd.read_csv(
-        uploaded_file,
-        encoding="latin1",
-        sep=None,
-        engine="python",
-        on_bad_lines="skip"
-    )
+            df = pd.read_csv(
+                uploaded_file,
+                encoding="latin1",
+                sep=None,
+                engine="python",
+                on_bad_lines="skip"
+            )
 
-    st.dataframe(
-        df.head()
-    )
+            st.dataframe(
+                df.head()
+            )
+
             text_col = st.selectbox(
                 "Pilih Kolom Teks",
                 df.columns
@@ -463,7 +464,7 @@ elif menu == "Bulk CSV":
                         str(text)
                     )
 
-                    # Hilangkan emoji untuk hasil CSV
+                    # Hilangkan emoji pada hasil CSV
                     emotion_label = (
                         emotion_label
                         .replace("😡 ", "")
@@ -495,7 +496,10 @@ elif menu == "Bulk CSV":
                     "✅ Analisis selesai"
                 )
 
-                st.dataframe(df)
+                st.dataframe(
+                    df,
+                    use_container_width=True
+                )
 
                 csv = df.to_csv(
                     index=False
