@@ -317,13 +317,6 @@ if menu == "Dashboard":
 # =====================================================
 
 elif menu == "Analisis Satuan":
-
-    st.title("🔍 Analisis Sentimen & Emosi")
-
-    text = st.text_area(
-        "Masukkan Ulasan",
-        height=180
-    )
  if st.button(
             "🔄 Refresh",
             use_container_width=True
@@ -332,6 +325,13 @@ elif menu == "Analisis Satuan":
             st.session_state.result_df = None
 
             st.rerun()
+    st.title("🔍 Analisis Sentimen & Emosi")
+
+    text = st.text_area(
+        "Masukkan Ulasan",
+        height=180
+    )
+
     if st.button("🚀 Analisis"):
 
         if not text.strip():
