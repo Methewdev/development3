@@ -315,8 +315,6 @@ if menu == "Dashboard":
 # =====================================================
 # ANALISIS SATUAN
 # =====================================================
-
-```python
 elif menu == "Analisis Satuan":
 
     top1, top2 = st.columns([8, 2])
@@ -400,8 +398,6 @@ elif menu == "Analisis Satuan":
             "Confidence",
             f'{result["emotion_score"]:.2f}%'
         )
-```
-
 
 # =====================================================
 # BULK CSV
