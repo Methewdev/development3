@@ -162,11 +162,11 @@ def predict_emotion(text):
 # SESSION
 # =====================================================
 
-if "result_df" not in st.session_state:
-    st.session_state.result_df = None
-
 if "single_result" not in st.session_state:
     st.session_state.single_result = None
+
+if "input_text" not in st.session_state:
+    st.session_state.input_text = ""
 
 
 # =====================================================
@@ -329,21 +329,20 @@ elif menu == "Analisis Satuan":
     with top2:
 
         if st.button(
-    "🔄 Refresh",
-    use_container_width=True
-):
+            "🔄 Refresh",
+            use_container_width=True
+        ):
 
-    st.session_state.single_result = None
+            st.session_state.single_result = None
+            st.session_state.input_text = ""
 
-    st.session_state.input_text = ""
+            st.rerun()
 
-    st.rerun()
-
-   text = st.text_area(
-    "Masukkan Ulasan",
-    height=180,
-    key="input_text"
-)
+    text = st.text_area(
+        "Masukkan Ulasan",
+        height=180,
+        key="input_text"
+    )
 
     if st.button("🚀 Analisis"):
 
@@ -361,9 +360,13 @@ elif menu == "Analisis Satuan":
                     "🧠 Sedang menganalisis..."
                 ):
 
-                    sentiment, sentiment_score = predict_sentiment(text)
+                    sentiment, sentiment_score = predict_sentiment(
+                        text
+                    )
 
-                    emotion, emotion_score = predict_emotion(text)
+                    emotion, emotion_score = predict_emotion(
+                        text
+                    )
 
                 st.session_state.single_result = {
                     "sentiment": sentiment,
@@ -386,25 +389,29 @@ elif menu == "Analisis Satuan":
 
         c1, c2, c3, c4 = st.columns(4)
 
-        c1.metric(
-            "Sentimen",
-            result["sentiment"]
-        )
+        with c1:
+            st.metric(
+                "Sentimen",
+                result["sentiment"]
+            )
 
-        c2.metric(
-            "Confidence",
-            f'{result["sentiment_score"]:.2f}%'
-        )
+        with c2:
+            st.metric(
+                "Confidence",
+                f'{result["sentiment_score"]:.2f}%'
+            )
 
-        c3.metric(
-            "Emosi",
-            result["emotion"]
-        )
+        with c3:
+            st.metric(
+                "Emosi",
+                result["emotion"]
+            )
 
-        c4.metric(
-            "Confidence",
-            f'{result["emotion_score"]:.2f}%'
-        )
+        with c4:
+            st.metric(
+                "Confidence",
+                f'{result["emotion_score"]:.2f}%'
+            )
 
 # =====================================================
 # BULK CSV
