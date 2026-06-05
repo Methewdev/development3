@@ -150,15 +150,14 @@ def predict_emotion(text):
     ).item()
 
     emotion_map = {
-        0:"Anger",
-        1:"Fear",
-        2:"Happy",
-        3:"Love",
-        4:"Sadness"
+        0:"😡 Anger",
+        1:"😨 Fear",
+        2:"😊 Happy",
+        3:"❤️ Love",
+        4:"😢 Sadness"
     }
 
-    return emotion_map.get(pred,"Unknown")
-
+    return emotion_map.get(pred,"❓ Unknown")
 # =====================================================
 # SESSION
 # =====================================================
