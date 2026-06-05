@@ -187,6 +187,15 @@ menu = st.sidebar.radio(
 if menu == "Dashboard":
 
     st.title("📊 Dashboard Analisis")
+    col1, col2 = st.columns([8,2])
+
+with col2:
+
+    if st.button("🔄 Refresh"):
+
+        st.session_state.result_df = None
+
+        st.rerun()
 
     if st.session_state.result_df is None:
 
