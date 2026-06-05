@@ -315,8 +315,6 @@ elif menu == "Analisis Satuan":
 
                 st.markdown("---")
 
-                st.subheader(
-
                 elif sentiment == "Negatif":
 
                     st.error(
