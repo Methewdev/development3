@@ -316,8 +316,24 @@ if menu == "Dashboard":
 # ANALISIS SATUAN
 # =====================================================
 
+```python
 elif menu == "Analisis Satuan":
-    st.title("🔍 Analisis Sentimen & Emosi")
+
+    top1, top2 = st.columns([8, 2])
+
+    with top1:
+        st.title("🔍 Analisis Sentimen & Emosi")
+
+    with top2:
+
+        if st.button(
+            "🔄 Refresh",
+            use_container_width=True
+        ):
+
+            st.session_state.single_result = None
+
+            st.rerun()
 
     text = st.text_area(
         "Masukkan Ulasan",
@@ -344,35 +360,48 @@ elif menu == "Analisis Satuan":
 
                     emotion, emotion_score = predict_emotion(text)
 
-                st.markdown("## 📋 Hasil Analisis")
-
-                c1, c2, c3, c4 = st.columns(4)
-
-                c1.metric(
-                    "Sentimen",
-                    sentiment
-                )
-
-                c2.metric(
-                    "Confidence",
-                    f"{sentiment_score:.2f}%"
-                )
-
-                c3.metric(
-                    "Emosi",
-                    emotion
-                )
-
-                c4.metric(
-                    "Confidence",
-                    f"{emotion_score:.2f}%"
-                )
+                st.session_state.single_result = {
+                    "sentiment": sentiment,
+                    "sentiment_score": sentiment_score,
+                    "emotion": emotion,
+                    "emotion_score": emotion_score
+                }
 
             except Exception as e:
 
                 st.error(
                     f"Error : {e}"
                 )
+
+    if st.session_state.single_result is not None:
+
+        result = st.session_state.single_result
+
+        st.markdown("## 📋 Hasil Analisis")
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric(
+            "Sentimen",
+            result["sentiment"]
+        )
+
+        c2.metric(
+            "Confidence",
+            f'{result["sentiment_score"]:.2f}%'
+        )
+
+        c3.metric(
+            "Emosi",
+            result["emotion"]
+        )
+
+        c4.metric(
+            "Confidence",
+            f'{result["emotion_score"]:.2f}%'
+        )
+```
+
 
 # =====================================================
 # BULK CSV
