@@ -316,42 +316,6 @@ elif menu == "Analisis Satuan":
                 st.markdown("---")
 
                 st.subheader(
-                    "📈 Tingkat Keyakinan Model"
-                )
-
-                st.write(
-                    f"Sentiment Confidence : {sentiment_score:.2f}%"
-                )
-
-                st.progress(
-                    sentiment_score / 100
-                )
-
-                st.write(
-                    f"Emotion Confidence : {emotion_score:.2f}%"
-                )
-
-                st.progress(
-                    emotion_score / 100
-                )
-
-                st.markdown("---")
-
-                if sentiment == "Positif":
-
-                    st.success(
-                        f"""
-🎉 Hasil Analisis
-
-😊 Sentimen : Positif
-
-🧠 Emosi Dominan : {emotion}
-
-📈 Confidence Sentiment : {sentiment_score:.2f}%
-
-📈 Confidence Emotion : {emotion_score:.2f}%
-"""
-                    )
 
                 elif sentiment == "Negatif":
 
