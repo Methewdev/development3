@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import torch
-import torch.nn.functional as F
 
 from transformers import (
     AutoTokenizer,
@@ -102,37 +101,27 @@ def predict_sentiment(text):
     )
 
     inputs = {
-        k: v.to(DEVICE)
-        for k, v in inputs.items()
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
     }
 
     with torch.no_grad():
+
         outputs = model(**inputs)
 
-    probs = F.softmax(
-        outputs.logits,
-        dim=1
-    )
-
-    confidence = torch.max(
-        probs
-    ).item()
-
     pred = torch.argmax(
-        probs,
+        outputs.logits,
         dim=1
     ).item()
 
     label_map = {
-        0: "Negatif",
-        1: "Netral",
-        2: "Positif"
+        0:"Negatif",
+        1:"Netral",
+        2:"Positif"
     }
 
-    return (
-        label_map.get(pred, "Unknown"),
-        round(confidence * 100, 2)
-    )
+    return label_map.get(pred,"Unknown")
+
 
 def predict_emotion(text):
 
@@ -147,39 +136,28 @@ def predict_emotion(text):
     )
 
     inputs = {
-        k: v.to(DEVICE)
-        for k, v in inputs.items()
+        k:v.to(DEVICE)
+        for k,v in inputs.items()
     }
 
     with torch.no_grad():
+
         outputs = model(**inputs)
 
-    probs = F.softmax(
-        outputs.logits,
-        dim=1
-    )
-
-    confidence = torch.max(
-        probs
-    ).item()
-
     pred = torch.argmax(
-        probs,
+        outputs.logits,
         dim=1
     ).item()
 
     emotion_map = {
-        0: "😡 Anger",
-        1: "😨 Fear",
-        2: "😊 Happy",
-        3: "❤️ Love",
-        4: "😢 Sadness"
+        0:"Anger",
+        1:"Fear",
+        2:"Happy",
+        3:"Love",
+        4:"Sadness"
     }
 
-    return (
-        emotion_map.get(pred, "Unknown"),
-        round(confidence * 100, 2)
-    )
+    return emotion_map.get(pred,"Unknown")
 
 # =====================================================
 # SESSION
@@ -253,88 +231,129 @@ if menu == "Dashboard":
 
 elif menu == "Analisis Satuan":
 
-st.title("🔍 Analisis Sentimen & Emosi")
+    st.title("🔍 Analisis Satuan")
 
-text = st.text_area(
-    "Masukkan Ulasan",
-    height=180,
-    placeholder="Contoh: Aplikasi sangat membantu dan mudah digunakan"
-)
+    text = st.text_area(
+        "Masukkan Ulasan"
+    )
 
-if st.button("🚀 Analisis"):
+    if st.button("Analisis"):
 
-    if not text.strip():
+        if not text.strip():
 
-        st.warning(
-            "Masukkan teks terlebih dahulu"
-        )
+            st.warning(
+                "Masukkan teks terlebih dahulu"
+            )
 
-    else:
+        else:
+
+            try:
+
+                with st.spinner(
+                    "Memproses..."
+                ):
+
+                    sentiment = predict_sentiment(
+                        text
+                    )
+
+                    emotion = predict_emotion(
+                        text
+                    )
+
+                col1,col2 = st.columns(2)
+
+                col1.success(
+                    f"Sentimen : {sentiment}"
+                )
+
+                col2.info(
+                    f"Emosi : {emotion}"
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Error : {e}"
+                )
+
+# =====================================================
+# BULK CSV
+# =====================================================
+
+elif menu == "Bulk CSV":
+
+    st.title("📂 Bulk CSV")
+
+    uploaded_file = st.file_uploader(
+        "Upload CSV",
+        type=["csv"]
+    )
+
+    if uploaded_file is not None:
 
         try:
 
-            with st.spinner(
-                "🧠 AI sedang menganalisis..."
+            df = pd.read_csv(
+                uploaded_file
+            )
+
+            st.dataframe(
+                df.head()
+            )
+
+            text_col = st.selectbox(
+                "Pilih Kolom Teks",
+                df.columns
+            )
+
+            if st.button(
+                "Proses Data"
             ):
 
-                sentiment, sentiment_score = predict_sentiment(
-                    text
+                sentiments = []
+                emotions = []
+
+                progress = st.progress(0)
+
+                for i,text in enumerate(
+                    df[text_col]
+                ):
+
+                    sentiments.append(
+                        predict_sentiment(text)
+                    )
+
+                    emotions.append(
+                        predict_emotion(text)
+                    )
+
+                    progress.progress(
+                        (i+1)/len(df)
+                    )
+
+                df["Sentiment"] = sentiments
+                df["Emotion"] = emotions
+
+                st.session_state.result_df = df
+
+                st.success(
+                    "Selesai"
                 )
 
-                emotion, emotion_score = predict_emotion(
-                    text
+                st.dataframe(df)
+
+                csv = df.to_csv(
+                    index=False
+                ).encode("utf-8")
+
+                st.download_button(
+                    "⬇ Download Hasil",
+                    csv,
+                    file_name="hasil_analisis.csv",
+                    mime="text/csv"
                 )
-
-            st.markdown("## 📋 Hasil Analisis")
-
-            c1, c2, c3, c4 = st.columns(4)
-
-            with c1:
-                st.metric(
-                    "Sentimen",
-                    sentiment
-                )
-
-            with c2:
-                st.metric(
-                    "Confidence",
-                    f"{sentiment_score:.2f}%"
-                )
-
-            with c3:
-                st.metric(
-                    "Emosi",
-                    emotion
-                )
-
-            with c4:
-                st.metric(
-                    "Confidence",
-                    f"{emotion_score:.2f}%"
-                )
-
-            st.markdown("---")
-
-            st.subheader("📈 Tingkat Keyakinan Model")
-
-            st.write(
-                f"Sentiment Confidence : {sentiment_score:.2f}%"
-            )
-
-            st.progress(
-                sentiment_score / 100
-            )
-
-            st.write(
-                f"Emotion Confidence : {emotion_score:.2f}%"
-            )
-
-            st.progress(
-                emotion_score / 100
-            )
 
         except Exception as e:
 
-            st.error(
-                f"Error : {e}"
-            )
+            st.error(str(e))
