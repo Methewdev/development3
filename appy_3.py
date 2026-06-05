@@ -251,6 +251,7 @@ if menu == "Dashboard":
 # ANALISIS SATUAN
 # =====================================================
 
+```python
 elif menu == "Analisis Satuan":
 
     st.title("🔍 Analisis Sentimen & Emosi")
@@ -315,121 +316,28 @@ elif menu == "Analisis Satuan":
 
                 st.markdown("---")
 
-                elif sentiment == "Negatif":
+                st.subheader("📈 Tingkat Keyakinan Model")
 
-                    st.error(
-                        f"""
-⚠️ Hasil Analisis
+                st.write(
+                    f"Sentiment Confidence : {sentiment_score:.2f}%"
+                )
 
-😔 Sentimen : Negatif
+                st.progress(
+                    sentiment_score / 100
+                )
 
-🧠 Emosi Dominan : {emotion}
+                st.write(
+                    f"Emotion Confidence : {emotion_score:.2f}%"
+                )
 
-📈 Confidence Sentiment : {sentiment_score:.2f}%
-
-📈 Confidence Emotion : {emotion_score:.2f}%
-"""
-                    )
-
-                else:
-
-                    st.info(
-                        f"""
-ℹ️ Hasil Analisis
-
-😐 Sentimen : Netral
-
-🧠 Emosi Dominan : {emotion}
-
-📈 Confidence Sentiment : {sentiment_score:.2f}%
-
-📈 Confidence Emotion : {emotion_score:.2f}%
-"""
-                    )
+                st.progress(
+                    emotion_score / 100
+                )
 
             except Exception as e:
 
                 st.error(
                     f"Error : {e}"
                 )
+```
 
-# =====================================================
-# BULK CSV
-# =====================================================
-
-elif menu == "Bulk CSV":
-
-    st.title("📂 Bulk CSV")
-
-    uploaded_file = st.file_uploader(
-        "Upload CSV",
-        type=["csv"]
-    )
-
-    if uploaded_file is not None:
-
-        try:
-
-            df = pd.read_csv(
-                uploaded_file
-            )
-
-            st.dataframe(
-                df.head()
-            )
-
-            text_col = st.selectbox(
-                "Pilih Kolom Teks",
-                df.columns
-            )
-
-            if st.button(
-                "Proses Data"
-            ):
-
-                sentiments = []
-                emotions = []
-
-                progress = st.progress(0)
-
-                for i,text in enumerate(
-                    df[text_col]
-                ):
-
-                    sentiments.append(
-                        predict_sentiment(text)
-                    )
-
-                    emotions.append(
-                        predict_emotion(text)
-                    )
-
-                    progress.progress(
-                        (i+1)/len(df)
-                    )
-
-                df["Sentiment"] = sentiments
-                df["Emotion"] = emotions
-
-                st.session_state.result_df = df
-
-                st.success(
-                    "Selesai"
-                )
-
-                st.dataframe(df)
-
-                csv = df.to_csv(
-                    index=False
-                ).encode("utf-8")
-
-                st.download_button(
-                    "⬇ Download Hasil",
-                    csv,
-                    file_name="hasil_analisis.csv",
-                    mime="text/csv"
-                )
-
-        except Exception as e:
-
-            st.error(str(e))
