@@ -324,7 +324,14 @@ elif menu == "Analisis Satuan":
         "Masukkan Ulasan",
         height=180
     )
+ if st.button(
+            "🔄 Refresh",
+            use_container_width=True
+        ):
 
+            st.session_state.result_df = None
+
+            st.rerun()
     if st.button("🚀 Analisis"):
 
         if not text.strip():
