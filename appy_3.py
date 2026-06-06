@@ -168,7 +168,8 @@ if "single_result" not in st.session_state:
 if "input_text" not in st.session_state:
     st.session_state.input_text = ""
 
-
+if "result_df" not in st.session_state:
+    st.session_state.result_df = None
 # =====================================================
 # SIDEBAR
 # =====================================================
